@@ -13,6 +13,7 @@
   "Sidebar": {
     "dashboard": "Dashboard",
     "employees": "Employees",
+    "approvals": "Card Approvals",
     "templates": "Card Templates",
     "crmLeads": "CRM Leads",
     "settings": "Settings",
@@ -70,7 +71,9 @@
     "bulkUploadHint": "CSV upload feature coming soon!",
     "editEmployee": "Edit Employee",
     "saveChanges": "Save Changes",
-    "email": "Email"
+    "email": "Email",
+    "sendInvitations": "Send App Invitations",
+    "invitationsSent": "Invitations & passwords sent via email!"
   },
   "CardBuilder": {
     "title": "Smart Card Builder",
@@ -144,5 +147,15 @@
     "newPassword": "New Password",
     "confirmPassword": "Confirm Password",
     "updatePassword": "Update Password"
+  },
+  "Approvals": {
+    "title": "Card Approvals",
+    "subtitle": "Review and approve employee cards customized from the mobile app.",
+    "preview": "Preview Card",
+    "approve": "Approve (Publish)",
+    "reject": "Reject",
+    "status_pending": "Pending Setup",
+    "status_review": "Pending Review",
+    "status_approved": "Approved"
   }
 }

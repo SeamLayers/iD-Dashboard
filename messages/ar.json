@@ -13,11 +13,12 @@
   "Sidebar": {
     "dashboard": "لوحة القيادة",
     "employees": "الموظفون",
+    "approvals": "الموافقات على البطاقات",
     "templates": "قوالب البطاقات",
-    "crmLeads": "عملاء CRM",
+    "crmLeads": "العملاء المحتملون",
     "settings": "الإعدادات",
     "by": "بواسطة محاور",
-    "superAdmin": "مدير عام"
+    "superAdmin": "المدير العام"
   },
   "TopNavbar": {
     "searchPlaceholder": "ابحث عن موظفين، عملاء، قوالب...",
@@ -70,7 +71,9 @@
     "bulkUploadHint": "ميزة رفع CSV قادمة قريباً!",
     "editEmployee": "تعديل الموظف",
     "saveChanges": "حفظ التغييرات",
-    "email": "البريد الإلكتروني"
+    "email": "البريد الإلكتروني",
+    "sendInvitations": "إرسال دعوات التطبيق",
+    "invitationsSent": "تم إرسال الدعوات وكلمات المرور عبر البريد الإلكتروني!"
   },
   "CardBuilder": {
     "title": "منشئ البطاقات الذكية",
@@ -144,5 +147,15 @@
     "newPassword": "كلمة المرور الجديدة",
     "confirmPassword": "تأكيد كلمة المرور",
     "updatePassword": "تحديث كلمة المرور"
+  },
+  "Approvals": {
+    "title": "الموافقات على البطاقات",
+    "subtitle": "مراجعة والموافقة على بطاقات الموظفين المخصصة من تطبيق الهاتف.",
+    "preview": "معاينة البطاقة",
+    "approve": "موافقة (نشر)",
+    "reject": "رفض",
+    "status_pending": "في انتظار الإعداد",
+    "status_review": "قيد المراجعة",
+    "status_approved": "تمت الموافقة"
   }
 }

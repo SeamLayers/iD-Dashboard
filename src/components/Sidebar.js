@@ -1,7 +1,7 @@
 "use client";
 import { Link, usePathname } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
-import { LayoutDashboard, Users, CreditCard, TrendingUp, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, TrendingUp, Settings, CheckSquare } from 'lucide-react';
 
 export default function Sidebar() {
   const t = useTranslations('Sidebar');
@@ -10,6 +10,7 @@ export default function Sidebar() {
   const menuItems = [
     { name: t('dashboard'), path: '/', icon: <LayoutDashboard size={20} /> },
     { name: t('employees'), path: '/employees', icon: <Users size={20} /> },
+    { name: t('approvals'), path: '/approvals', icon: <CheckSquare size={20} /> },
     { name: t('templates'), path: '/templates', icon: <CreditCard size={20} /> },
     { name: t('crmLeads'), path: '/leads', icon: <TrendingUp size={20} /> },
     { name: t('settings'), path: '/settings', icon: <Settings size={20} /> },

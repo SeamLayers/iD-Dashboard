@@ -79,32 +79,12 @@ export default function TemplatesPage() {
           </div>
         </div>
 
-        {/* Displayed Fields */}
+        {/* Displayed Fields (Removed for Base Template) */}
         <div className="cb-section">
-          <h3 className="cb-section-title">{t('displayedFields')}</h3>
-          <div className="cb-toggles">
-            {[
-              { key: 'phone', icon: <Phone size={16} />, label: t('phone') },
-              { key: 'email', icon: <Mail size={16} />, label: t('email') },
-              { key: 'linkedin', icon: <Linkedin size={16} />, label: t('linkedin') },
-              { key: 'address', icon: <MapPin size={16} />, label: t('address') },
-            ].map(item => (
-              <div className="cb-toggle-row" key={item.key}>
-                <div className="cb-toggle-info">
-                  <span className="cb-toggle-icon">{item.icon}</span>
-                  <span>{item.label}</span>
-                </div>
-                <button
-                  className={`cb-switch ${fields[item.key] ? 'on' : ''}`}
-                  onClick={() => toggleField(item.key)}
-                  role="switch"
-                  aria-checked={fields[item.key]}
-                >
-                  <span className="cb-switch-thumb" />
-                </button>
-              </div>
-            ))}
-          </div>
+          <h3 className="cb-section-title" style={{ color: 'var(--text-muted)' }}>{t('displayedFields')}</h3>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: '1.5' }}>
+            Employees will customize their personal details (Phone, Email, LinkedIn, Address) directly from the mobile app.
+          </p>
         </div>
 
         {/* Action Buttons */}
@@ -144,34 +124,19 @@ export default function TemplatesPage() {
                     )}
                   </div>
                   <div className="cb-card-info">
-                    <h3 className="cb-card-name">Ahmed Mohamed</h3>
-                    <p className="cb-card-title" style={{ color: accentColor }}>Chief Technology Officer</p>
+                    <h3 className="cb-card-name" style={{ color: 'var(--text-primary)', opacity: 0.5 }}>[ Employee Name ]</h3>
+                    <p className="cb-card-title" style={{ color: accentColor, opacity: 0.7 }}>[ Job Title ]</p>
                   </div>
-                  <div className="cb-card-fields">
-                    {fields.phone && (
-                      <div className="cb-card-field">
-                        <Phone size={13} style={{ color: primaryColor }} />
-                        <span>+966 50 123 4567</span>
-                      </div>
-                    )}
-                    {fields.email && (
-                      <div className="cb-card-field">
-                        <Mail size={13} style={{ color: primaryColor }} />
-                        <span>ahmed@mhawer.com</span>
-                      </div>
-                    )}
-                    {fields.linkedin && (
-                      <div className="cb-card-field">
-                        <Linkedin size={13} style={{ color: primaryColor }} />
-                        <span>linkedin.com/in/ahmed</span>
-                      </div>
-                    )}
-                    {fields.address && (
-                      <div className="cb-card-field">
-                        <MapPin size={13} style={{ color: primaryColor }} />
-                        <span>Riyadh, Saudi Arabia</span>
-                      </div>
-                    )}
+                  <div className="cb-card-fields" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', opacity: 0.5 }}>
+                    <div className="cb-card-field" style={{ background: 'var(--overlay-white)', padding: '0.5rem', borderRadius: '8px' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>+ [ Phone Number ]</span>
+                    </div>
+                    <div className="cb-card-field" style={{ background: 'var(--overlay-white)', padding: '0.5rem', borderRadius: '8px' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>@ [ Email Address ]</span>
+                    </div>
+                    <div className="cb-card-field" style={{ background: 'var(--overlay-white)', padding: '0.5rem', borderRadius: '8px' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>in/ [ LinkedIn Profile ]</span>
+                    </div>
                   </div>
                 </div>
               </div>

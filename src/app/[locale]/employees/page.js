@@ -110,6 +110,10 @@ export default function EmployeesPage() {
           <p className="emp-subtitle">{t('subtitle')}</p>
         </div>
         <div className="emp-header-actions">
+          <button className="btn-primary" style={{ background: 'var(--accent-teal)', borderColor: 'var(--accent-teal)' }} onClick={() => showToast(t('invitationsSent'))}>
+            <Check size={16} />
+            <span>{t('sendInvitations')}</span>
+          </button>
           <button className="btn-outline" onClick={() => showToast(t('bulkUploadHint'))}>
             <Upload size={16} />
             <span>{t('bulkUpload')}</span>

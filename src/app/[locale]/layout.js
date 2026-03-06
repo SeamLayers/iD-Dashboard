@@ -4,6 +4,7 @@ import TopNavbar from "@/components/TopNavbar";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import ThemeProvider from "@/components/ThemeProvider";
 
 export const metadata = {
   title: "iD+ Web Admin Dashboard",
@@ -26,17 +27,19 @@ export default async function RootLayout({ children, params }) {
   const messages = await getMessages();
 
   return (
-    <html lang={locale} dir={dir} className={dir}>
+    <html lang={locale} dir={dir} className={dir} suppressHydrationWarning>
       <body>
-        <NextIntlClientProvider messages={messages}>
-          <div className="layout-wrapper">
-            <Sidebar />
-            <div className="main-content">
-              <TopNavbar />
-              {children}
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <NextIntlClientProvider messages={messages}>
+            <div className="layout-wrapper">
+              <Sidebar />
+              <div className="main-content">
+                <TopNavbar />
+                {children}
+              </div>
             </div>
-          </div>
-        </NextIntlClientProvider>
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
