@@ -5,6 +5,8 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import ThemeProvider from "@/components/ThemeProvider";
+import { DemoStoreProvider } from "@/components/DemoStoreProvider";
+import { Toaster } from 'react-hot-toast';
 
 export const metadata = {
   title: "iD+ Web Admin Dashboard",
@@ -31,13 +33,27 @@ export default async function RootLayout({ children, params }) {
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <NextIntlClientProvider messages={messages}>
-            <div className="layout-wrapper">
-              <Sidebar />
-              <div className="main-content">
-                <TopNavbar />
-                {children}
+            <DemoStoreProvider>
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  duration: 2600,
+                  style: {
+                    borderRadius: '12px',
+                    border: '1px solid rgba(20, 184, 166, 0.25)',
+                    background: 'rgba(2, 6, 23, 0.92)',
+                    color: '#F8FAFC',
+                  },
+                }}
+              />
+              <div className="layout-wrapper">
+                <Sidebar />
+                <div className="main-content">
+                  <TopNavbar />
+                  {children}
+                </div>
               </div>
-            </div>
+            </DemoStoreProvider>
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>

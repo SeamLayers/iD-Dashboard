@@ -1,35 +1,27 @@
 "use client";
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'react-hot-toast';
 import { Check, X, Eye, Clock, Phone, Mail, Linkedin, MapPin, RotateCcw } from 'lucide-react';
-
-const PENDING_REQUESTS = [
-  { id: 101, name: 'Omar Farouk', jobTitle: 'Marketing Specialist', department: 'Marketing', submittedAt: '2 hours ago', status: 'pending', phone: '+966 50 987 6543', email: 'omar.f@mhawer.com', linkedin: 'linkedin.com/in/omarf', address: 'Riyadh, KSA' },
-  { id: 102, name: 'Youssef Amin', jobTitle: 'Account Manager', department: 'Sales', submittedAt: '5 hours ago', status: 'pending', phone: '+966 50 111 2222', email: 'youssef.a@mhawer.com', linkedin: 'linkedin.com/in/youssefa', address: 'Jeddah, KSA' },
-];
+import { useDemoStore } from '@/components/DemoStoreProvider';
 
 export default function ApprovalsPage() {
   const t = useTranslations('Approvals');
-  const [requests, setRequests] = useState(PENDING_REQUESTS);
+  const tDemo = useTranslations('Demo');
+  const { approvalRequests, approveCard, rejectCard } = useDemoStore();
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [toast, setToast] = useState(null);
-
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const handleApprove = (id) => {
-    setRequests(prev => prev.filter(r => r.id !== id));
+    approveCard(id);
     setSelectedRequest(null);
-    showToast('Card Approved & Published successfully!');
+    toast.success(tDemo('cardApproved'));
   };
 
   const handleReject = (id) => {
-    setRequests(prev => prev.filter(r => r.id !== id));
+    rejectCard(id);
     setSelectedRequest(null);
-    showToast('Card Rejected. Employee notified to make changes.');
+    toast.error(tDemo('cardRejected'));
   };
 
   // Base Template Styles matching current Theme (Mocking Admin's predefined styles)
@@ -38,12 +30,6 @@ export default function ApprovalsPage() {
 
   return (
     <div className="emp-page" style={{ animation: 'empFadeIn 0.5s ease-out' }}>
-      {toast && (
-        <div className="toast-notification">
-          <Check size={16} /><span>{toast}</span>
-        </div>
-      )}
-
       {/* ── Header ── */}
       <div className="emp-header">
         <div>
@@ -65,14 +51,14 @@ export default function ApprovalsPage() {
             </tr>
           </thead>
           <tbody>
-            {requests.length === 0 ? (
+            {approvalRequests.length === 0 ? (
               <tr>
                 <td colSpan="5" className="text-center" style={{ padding: '3rem', color: 'var(--text-muted)' }}>
                   No pending card approvals at the moment.
                 </td>
               </tr>
             ) : (
-              requests.map((req) => (
+              approvalRequests.map((req) => (
                 <tr key={req.id}>
                   <td>
                     <div className="emp-info">
@@ -93,7 +79,7 @@ export default function ApprovalsPage() {
                     <span className="status-pill pending-pill">{t('status_review')}</span>
                   </td>
                   <td className="text-right">
-                    <button className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => setSelectedRequest(req)}>
+                    <button className="btn-primary transition-all duration-300" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} onClick={() => setSelectedRequest(req)}>
                       <Eye size={14} /> <span>{t('preview')}</span>
                     </button>
                   </td>

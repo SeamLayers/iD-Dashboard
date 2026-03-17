@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import { useRouter, usePathname } from '@/i18n/routing';
-import { User, Globe, Bell, Palette, Shield, Building2, Check, Moon, Sun } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { User, Globe, Bell, Palette, Shield, Building2, Check, Moon, Sun, Users } from 'lucide-react';
 
 // Hook up next-themes
 import { useTheme } from 'next-themes';
@@ -15,15 +16,63 @@ export default function SettingsPage() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
 
-  const [toast, setToast] = useState(null);
   const [activeTab, setActiveTab] = useState('profile');
   const [notifyEmail, setNotifyEmail] = useState(true);
   const [notifyPush, setNotifyPush] = useState(true);
   const [notifyWeekly, setNotifyWeekly] = useState(false);
+  const [delegationForm, setDelegationForm] = useState({
+    delegateTo: '2',
+    fromDate: '',
+    toDate: '',
+    temporaryRole: 'temporary_admin',
+  });
+  const [activeDelegations, setActiveDelegations] = useState([
+    {
+      id: 1,
+      delegateName: 'Sarah Khalid',
+      fromDate: '2026-03-16',
+      toDate: '2026-03-23',
+      temporaryRole: 'temporary_admin',
+    },
+    {
+      id: 2,
+      delegateName: 'Omar Farouk',
+      fromDate: '2026-03-18',
+      toDate: '2026-03-25',
+      temporaryRole: 'temporary_manager',
+    },
+    {
+      id: 3,
+      delegateName: 'Laila Hassan',
+      fromDate: '2026-03-19',
+      toDate: '2026-03-24',
+      temporaryRole: 'temporary_admin',
+    },
+    {
+      id: 4,
+      delegateName: 'Nora Ali',
+      fromDate: '2026-03-20',
+      toDate: '2026-03-26',
+      temporaryRole: 'temporary_manager',
+    },
+    {
+      id: 5,
+      delegateName: 'Faisal Al-Rashid',
+      fromDate: '2026-03-21',
+      toDate: '2026-03-27',
+      temporaryRole: 'temporary_admin',
+    },
+  ]);
+
+  const teamMembers = [
+    { id: '2', name: 'Sarah Khalid' },
+    { id: '3', name: 'Omar Farouk' },
+    { id: '4', name: 'Laila Hassan' },
+    { id: '6', name: 'Nora Ali' },
+  ];
 
   const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
+    toast.success(msg);
   };
 
   const switchLanguage = (lang) => {
@@ -32,23 +81,55 @@ export default function SettingsPage() {
     }
   };
 
+  const handleCreateDelegation = (e) => {
+    e.preventDefault();
+
+    if (!delegationForm.fromDate || !delegationForm.toDate || delegationForm.fromDate > delegationForm.toDate) {
+      showToast(t('delegationDateError'));
+      return;
+    }
+
+    const selectedMember = teamMembers.find(member => member.id === delegationForm.delegateTo);
+    if (!selectedMember) {
+      return;
+    }
+
+    setActiveDelegations(prev => [
+      {
+        id: Date.now(),
+        delegateName: selectedMember.name,
+        fromDate: delegationForm.fromDate,
+        toDate: delegationForm.toDate,
+        temporaryRole: delegationForm.temporaryRole,
+      },
+      ...prev,
+    ]);
+
+    setDelegationForm({
+      delegateTo: delegationForm.delegateTo,
+      fromDate: '',
+      toDate: '',
+      temporaryRole: 'temporary_admin',
+    });
+    showToast(t('delegationCreated'));
+  };
+
+  const handleRevokeDelegation = (delegationId) => {
+    setActiveDelegations(prev => prev.filter(item => item.id !== delegationId));
+    showToast(t('delegationRevoked'));
+  };
+
   const tabs = [
     { key: 'profile', label: t('profile'), icon: <User size={18} /> },
     { key: 'organization', label: t('organization'), icon: <Building2 size={18} /> },
     { key: 'appearance', label: t('appearance'), icon: <Palette size={18} /> },
     { key: 'notifications', label: t('notifications'), icon: <Bell size={18} /> },
     { key: 'security', label: t('security'), icon: <Shield size={18} /> },
+    { key: 'delegation', label: t('delegation'), icon: <Users size={18} /> },
   ];
 
   return (
     <div className="settings-page">
-      {/* ...toast/header/tabs logic identical... */}
-      {toast && (
-        <div className="toast-notification">
-          <Check size={16} /><span>{toast}</span>
-        </div>
-      )}
-
       <div className="settings-header">
         <h1 className="settings-title text-gradient">{t('title')}</h1>
         <p className="settings-subtitle">{t('subtitle')}</p>
@@ -219,6 +300,107 @@ export default function SettingsPage() {
                   <div className="settings-field"><label>{t('confirmPassword')}</label><input type="password" placeholder="••••••••" className="modal-input" /></div>
                 </div>
                 <button className="btn-primary" onClick={() => showToast(t('saved'))}><Check size={14}/><span>{t('updatePassword')}</span></button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Delegation ── */}
+          {activeTab === 'delegation' && (
+            <div className="settings-section">
+              <h2 className="settings-sec-title">{t('delegationTitle')}</h2>
+              <p className="settings-subtitle" style={{ marginBottom: '1.5rem' }}>{t('delegationSubtitle')}</p>
+
+              <form className="settings-form" onSubmit={handleCreateDelegation}>
+                <div className="settings-field">
+                  <label>{t('delegationSelectUser')}</label>
+                  <select
+                    value={delegationForm.delegateTo}
+                    onChange={(e) => setDelegationForm(prev => ({ ...prev, delegateTo: e.target.value }))}
+                    className="modal-input"
+                  >
+                    {teamMembers.map(member => (
+                      <option key={member.id} value={member.id}>{member.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="settings-row">
+                  <div className="settings-field">
+                    <label>{t('delegationFrom')}</label>
+                    <input
+                      type="date"
+                      value={delegationForm.fromDate}
+                      onChange={(e) => setDelegationForm(prev => ({ ...prev, fromDate: e.target.value }))}
+                      className="modal-input"
+                      required
+                    />
+                  </div>
+                  <div className="settings-field">
+                    <label>{t('delegationTo')}</label>
+                    <input
+                      type="date"
+                      value={delegationForm.toDate}
+                      onChange={(e) => setDelegationForm(prev => ({ ...prev, toDate: e.target.value }))}
+                      className="modal-input"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="settings-field">
+                  <label>{t('delegationRole')}</label>
+                  <select
+                    value={delegationForm.temporaryRole}
+                    onChange={(e) => setDelegationForm(prev => ({ ...prev, temporaryRole: e.target.value }))}
+                    className="modal-input"
+                  >
+                    <option value="temporary_admin">{t('delegationRole_temporary_admin')}</option>
+                    <option value="temporary_manager">{t('delegationRole_temporary_manager')}</option>
+                  </select>
+                </div>
+
+                <button type="submit" className="btn-primary" style={{ width: 'fit-content' }}>
+                  <Check size={14} />
+                  <span>{t('delegationAssign')}</span>
+                </button>
+              </form>
+
+              <div className="delegation-table-wrap glass-panel">
+                <div className="delegation-table-head">
+                  <h3>{t('activeDelegations')}</h3>
+                </div>
+                {activeDelegations.length === 0 ? (
+                  <p className="delegation-empty">{t('delegationEmpty')}</p>
+                ) : (
+                  <table className="delegation-table">
+                    <thead>
+                      <tr>
+                        <th>{t('delegationUser')}</th>
+                        <th>{t('delegationPeriod')}</th>
+                        <th>{t('delegationRole')}</th>
+                        <th>{t('delegationActions')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activeDelegations.map(item => (
+                        <tr key={item.id}>
+                          <td>{item.delegateName}</td>
+                          <td>{item.fromDate} - {item.toDate}</td>
+                          <td>
+                            <span className="delegation-role-pill">
+                              {t(`delegationRole_${item.temporaryRole}`)}
+                            </span>
+                          </td>
+                          <td>
+                            <button className="btn-danger delegation-revoke-btn" onClick={() => handleRevokeDelegation(item.id)}>
+                              {t('delegationRevoke')}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           )}

@@ -55,6 +55,7 @@
     "dept_it": "Information Technology",
     "role_all": "All Roles",
     "role_admin": "Admin",
+    "role_manager": "Manager",
     "role_employee": "Employee",
     "card_active": "Active",
     "card_pending": "Pending Setup",
@@ -110,7 +111,11 @@
     "colCompany": "Company",
     "colSource": "Source Card",
     "colStage": "Stage",
-    "colDate": "Date"
+    "colDate": "Date",
+    "paywallTitle": "Advanced CRM (Coming Soon)",
+    "paywallDescription": "Unlock powerful lead tracking, analytics, and auto-follow-ups. This premium module will be available in the upcoming release to skyrocket your sales.",
+    "notifyMe": "Notify Me",
+    "notifyRequested": "You are on the waitlist"
   },
   "Settings": {
     "title": "Settings",
@@ -120,6 +125,7 @@
     "appearance": "Appearance",
     "notifications": "Notifications",
     "security": "Security",
+    "delegation": "Delegation",
     "profileInfo": "Profile Information",
     "fullName": "Full Name",
     "emailLabel": "Email Address",
@@ -146,7 +152,25 @@
     "currentPassword": "Current Password",
     "newPassword": "New Password",
     "confirmPassword": "Confirm Password",
-    "updatePassword": "Update Password"
+    "updatePassword": "Update Password",
+    "delegationTitle": "Role Delegation",
+    "delegationSubtitle": "Temporarily delegate permissions to another user for a limited period.",
+    "delegationSelectUser": "Select User",
+    "delegationFrom": "From",
+    "delegationTo": "To",
+    "delegationRole": "Temporary Role",
+    "delegationRole_temporary_admin": "Temporary Admin",
+    "delegationRole_temporary_manager": "Temporary Manager",
+    "delegationAssign": "Assign Delegation",
+    "activeDelegations": "Active Delegations",
+    "delegationUser": "User",
+    "delegationPeriod": "From - To",
+    "delegationActions": "Actions",
+    "delegationRevoke": "Revoke",
+    "delegationEmpty": "No active delegations yet.",
+    "delegationCreated": "Delegation assigned successfully.",
+    "delegationRevoked": "Delegation revoked successfully.",
+    "delegationDateError": "Please select a valid date range."
   },
   "Approvals": {
     "title": "Card Approvals",
@@ -157,5 +181,16 @@
     "status_pending": "Pending Setup",
     "status_review": "Pending Review",
     "status_approved": "Approved"
+  },
+  "Demo": {
+    "demoReset": "Reset Demo",
+    "demoResetSuccess": "Demo data reset for investor presentation.",
+    "boardSynced": "Board notification synced for Saudi investor demo.",
+    "cardApproved": "Card approved and published successfully.",
+    "cardRejected": "Card rejected and employee notified to revise details.",
+    "templateSaved": "Saudi-focused template saved successfully.",
+    "templateAssigned": "Template assigned to selected Saudi departments.",
+    "crmExported": "CRM export generated for the Saudi executive board.",
+    "waitlistJoined": "You are now on the Advanced CRM priority waitlist."
   }
 }

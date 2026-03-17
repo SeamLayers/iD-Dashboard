@@ -1,10 +1,15 @@
 "use client";
 import { useTranslations } from 'next-intl';
-import { Search, Bell } from 'lucide-react';
+import { Link } from '@/i18n/routing';
+import { toast } from 'react-hot-toast';
+import { Search, Bell, RotateCcw } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
+import { useDemoStore } from './DemoStoreProvider';
 
 export default function TopNavbar() {
   const t = useTranslations('TopNavbar');
+  const tDemo = useTranslations('Demo');
+  const { resetDemoData } = useDemoStore();
 
   return (
     <header className="top-navbar glass-panel">
@@ -20,12 +25,25 @@ export default function TopNavbar() {
       <div className="navbar-actions">
         <LanguageSwitcher />
 
-        <button className="notification-btn">
+        <button
+          className="btn-outline transition-all duration-300"
+          onClick={() => {
+            resetDemoData();
+            toast.success(tDemo('demoResetSuccess'));
+          }}
+          style={{ padding: '0.5rem 0.9rem' }}
+          title={tDemo('demoReset')}
+        >
+          <RotateCcw size={16} />
+          <span>{tDemo('demoReset')}</span>
+        </button>
+
+        <button className="notification-btn transition-all duration-300" onClick={() => toast.success(tDemo('boardSynced'))}>
           <Bell size={18} />
           <span className="notification-dot"></span>
         </button>
         
-        <div className="admin-profile">
+        <Link href="/settings" className="admin-profile transition-all duration-300">
           <div className="admin-info">
             <span className="admin-name">{t('ahmed')}</span>
             <span className="admin-tag text-gradient">{t('superAdmin')}</span>
@@ -33,7 +51,7 @@ export default function TopNavbar() {
           <div className="admin-avatar">
             AM
           </div>
-        </div>
+        </Link>
       </div>
     </header>
   );

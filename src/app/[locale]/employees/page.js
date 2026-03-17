@@ -1,40 +1,25 @@
 "use client";
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'react-hot-toast';
 import { Plus, Upload, Search, MoreVertical, ChevronLeft, ChevronRight, Edit2, Trash2, X, Check } from 'lucide-react';
-
-const INITIAL_EMPLOYEES = [
-  { id: 1, name: 'Ahmed Mohamed', email: 'ahmed.m@mhawer.com', avatar: 'AM', jobTitle: 'Chief Technology Officer', department: 'management', role: 'admin', cardStatus: 'active' },
-  { id: 2, name: 'Sarah Khalid', email: 'sarah.k@mhawer.com', avatar: 'SK', jobTitle: 'Sales Director', department: 'sales', role: 'admin', cardStatus: 'active' },
-  { id: 3, name: 'Omar Farouk', email: 'omar.f@mhawer.com', avatar: 'OF', jobTitle: 'Marketing Specialist', department: 'marketing', role: 'employee', cardStatus: 'pending' },
-  { id: 4, name: 'Laila Hassan', email: 'laila.h@mhawer.com', avatar: 'LH', jobTitle: 'HR Manager', department: 'hr', role: 'admin', cardStatus: 'active' },
-  { id: 5, name: 'Tarek Zaid', email: 'tarek.z@mhawer.com', avatar: 'TZ', jobTitle: 'Full Stack Developer', department: 'it', role: 'employee', cardStatus: 'inactive' },
-  { id: 6, name: 'Nora Ali', email: 'nora.a@mhawer.com', avatar: 'NA', jobTitle: 'UI/UX Designer', department: 'it', role: 'employee', cardStatus: 'active' },
-  { id: 7, name: 'Youssef Amin', email: 'youssef.a@mhawer.com', avatar: 'YA', jobTitle: 'Account Manager', department: 'sales', role: 'employee', cardStatus: 'pending' },
-  { id: 8, name: 'Mona Rashed', email: 'mona.r@mhawer.com', avatar: 'MR', jobTitle: 'Finance Analyst', department: 'management', role: 'employee', cardStatus: 'active' },
-];
+import { useDemoStore } from '@/components/DemoStoreProvider';
 
 const ITEMS_PER_PAGE = 5;
 
 export default function EmployeesPage() {
   const t = useTranslations('Employees');
+  const { employees, addEmployee, updateEmployee, removeEmployee } = useDemoStore();
 
-  const [employees, setEmployees] = useState(INITIAL_EMPLOYEES);
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [toast, setToast] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [editEmployee, setEditEmployee] = useState(null);
-
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  };
 
   // Filtration
   const filteredEmployees = employees.filter((emp) => {
@@ -53,13 +38,13 @@ export default function EmployeesPage() {
   );
 
   const departments = ['all', 'management', 'sales', 'marketing', 'hr', 'it'];
-  const roles = ['all', 'admin', 'employee'];
+  const roles = ['all', 'admin', 'manager', 'employee'];
 
   const handleDelete = (id) => {
-    setEmployees(prev => prev.filter(e => e.id !== id));
+    removeEmployee(id);
     setShowDeleteConfirm(null);
     setOpenMenuId(null);
-    showToast(t('deleteSuccess'));
+    toast.success(t('deleteSuccess'));
   };
 
   const handleEdit = (emp) => {
@@ -69,9 +54,9 @@ export default function EmployeesPage() {
   };
 
   const handleSaveEdit = () => {
-    setEmployees(prev => prev.map(e => e.id === editEmployee.id ? editEmployee : e));
+    updateEmployee(editEmployee.id, editEmployee);
     setShowEditModal(false);
-    showToast(t('editSuccess'));
+    toast.success(t('editSuccess'));
   };
 
   const handleAdd = (e) => {
@@ -85,24 +70,16 @@ export default function EmployeesPage() {
       avatar: name.split(' ').map(n => n[0]).join('').toUpperCase(),
       jobTitle: formData.get('jobTitle'),
       department: formData.get('department'),
-      role: formData.get('role'),
+      role: formData.get('role') || 'employee',
       cardStatus: 'pending',
     };
-    setEmployees(prev => [newEmp, ...prev]);
+    addEmployee(newEmp);
     setShowAddModal(false);
-    showToast(t('addSuccess'));
+    toast.success(t('addSuccess'));
   };
 
   return (
     <div className="emp-page">
-      {/* Toast */}
-      {toast && (
-        <div className="toast-notification">
-          <Check size={16} />
-          <span>{toast}</span>
-        </div>
-      )}
-
       {/* ── Header ── */}
       <div className="emp-header">
         <div>
@@ -110,15 +87,15 @@ export default function EmployeesPage() {
           <p className="emp-subtitle">{t('subtitle')}</p>
         </div>
         <div className="emp-header-actions">
-          <button className="btn-primary" style={{ background: 'var(--accent-teal)', borderColor: 'var(--accent-teal)' }} onClick={() => showToast(t('invitationsSent'))}>
+          <button className="btn-primary transition-all duration-300" style={{ background: 'var(--accent-teal)', borderColor: 'var(--accent-teal)' }} onClick={() => toast.success(t('invitationsSent'))}>
             <Check size={16} />
             <span>{t('sendInvitations')}</span>
           </button>
-          <button className="btn-outline" onClick={() => showToast(t('bulkUploadHint'))}>
+          <button className="btn-outline transition-all duration-300" onClick={() => toast(t('bulkUploadHint'))}>
             <Upload size={16} />
             <span>{t('bulkUpload')}</span>
           </button>
-          <button className="btn-primary" onClick={() => setShowAddModal(true)}>
+          <button className="btn-primary transition-all duration-300" onClick={() => setShowAddModal(true)}>
             <Plus size={16} />
             <span>{t('addEmployee')}</span>
           </button>
@@ -251,7 +228,7 @@ export default function EmployeesPage() {
               </div>
               <div className="modal-field">
                 <label>{t('colRole')}</label>
-                <select name="role" className="modal-input">{roles.filter(r => r !== 'all').map(r => <option key={r} value={r}>{t(`role_${r}`)}</option>)}</select>
+                <select name="role" defaultValue="employee" className="modal-input">{roles.filter(r => r !== 'all').map(r => <option key={r} value={r}>{t(`role_${r}`)}</option>)}</select>
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-outline" onClick={() => setShowAddModal(false)}>{t('cancel')}</button>

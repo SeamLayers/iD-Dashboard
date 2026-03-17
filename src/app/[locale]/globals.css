@@ -876,6 +876,12 @@ body {
   border: 1px solid rgba(102, 252, 241, 0.2);
 }
 
+.role-manager {
+  background: rgba(255, 167, 38, 0.14);
+  color: #FFA726;
+  border: 1px solid rgba(255, 167, 38, 0.28);
+}
+
 .role-employee {
   background: rgba(var(--color-white-rgb), 0.05);
   color: var(--text-secondary);
@@ -1743,6 +1749,85 @@ body {
     font-size: 0.85rem;
     color: var(--text-muted);
   }
+
+  .crm-premium-shell {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .crm-premium-content {
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .crm-premium-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--color-black-rgb), 0.3);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(var(--color-white-rgb), 0.08);
+    border-radius: 20px;
+    padding: 1.25rem;
+  }
+
+  .crm-locked-modal {
+    width: min(540px, 100%);
+    text-align: center;
+    padding: 2rem;
+    box-shadow: 0 18px 48px rgba(var(--color-black-rgb), 0.4), 0 0 28px rgba(102, 252, 241, 0.16);
+  }
+
+  .crm-lock-icon-wrap {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-cyan);
+    background: radial-gradient(circle at 30% 20%, rgba(102, 252, 241, 0.28), rgba(69, 162, 158, 0.18));
+    box-shadow: 0 0 16px rgba(102, 252, 241, 0.45);
+    animation: lockPulse 2.2s ease-in-out infinite;
+  }
+
+  @keyframes lockPulse {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 16px rgba(102, 252, 241, 0.45);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 0 24px rgba(102, 252, 241, 0.62);
+    }
+  }
+
+  .crm-lock-title {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.7rem;
+  }
+
+  .crm-lock-desc {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 460px;
+    margin: 0 auto 1.4rem;
+  }
+
+  .crm-locked-modal .btn-primary[disabled] {
+    opacity: 0.8;
+    cursor: default;
+    transform: none;
+  }
   
   /* ── Kanban Board ── */
   .crm-kanban {
@@ -2463,4 +2548,76 @@ body {
 .settings-toggle-desc {
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+
+.delegation-table-wrap {
+  margin-top: 2rem;
+  padding: 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.delegation-table-head {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid rgba(var(--color-white-rgb), 0.08);
+  background: rgba(var(--color-black-rgb), 0.14);
+}
+
+.delegation-table-head h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.delegation-empty {
+  padding: 1.25rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.delegation-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ltr .delegation-table {
+  text-align: left;
+}
+
+.rtl .delegation-table {
+  text-align: right;
+}
+
+.delegation-table th,
+.delegation-table td {
+  padding: 0.95rem 1.2rem;
+  white-space: nowrap;
+}
+
+.delegation-table th {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(var(--color-black-rgb), 0.1);
+}
+
+.delegation-table tbody tr {
+  border-top: 1px solid rgba(var(--color-white-rgb), 0.05);
+}
+
+.delegation-role-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.7rem;
+  border-radius: 50px;
+  font-size: 0.78rem;
+  background: rgba(102, 252, 241, 0.08);
+  border: 1px solid rgba(102, 252, 241, 0.2);
+  color: var(--accent-cyan);
+}
+
+.delegation-revoke-btn {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
 }

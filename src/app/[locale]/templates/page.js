@@ -1,10 +1,13 @@
 "use client";
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { CloudUpload, Save, Building2, Phone, Mail, Linkedin, MapPin, RotateCcw } from 'lucide-react';
+import Image from 'next/image';
+import { toast } from 'react-hot-toast';
+import { CloudUpload, Save, Building2, RotateCcw } from 'lucide-react';
 
 export default function TemplatesPage() {
   const t = useTranslations('CardBuilder');
+  const tDemo = useTranslations('Demo');
 
   const [primaryColor, setPrimaryColor] = useState('#66FCF1');
   const [accentColor, setAccentColor] = useState('#45A29E');
@@ -44,7 +47,7 @@ export default function TemplatesPage() {
           <h3 className="cb-section-title">{t('brandIdentity')}</h3>
           <label className="cb-upload-area" htmlFor="logo-upload">
             {logoPreview ? (
-              <img src={logoPreview} alt="Logo" className="cb-logo-preview" />
+              <Image src={logoPreview} alt="Company logo" className="cb-logo-preview" width={120} height={80} unoptimized />
             ) : (
               <>
                 <CloudUpload size={32} className="cb-upload-icon" />
@@ -89,11 +92,11 @@ export default function TemplatesPage() {
 
         {/* Action Buttons */}
         <div className="cb-actions">
-          <button className="btn-primary cb-btn-full">
+          <button className="btn-primary cb-btn-full transition-all duration-300" onClick={() => toast.success(tDemo('templateSaved'))}>
             <Save size={16} />
             <span>{t('saveTemplate')}</span>
           </button>
-          <button className="btn-outline cb-btn-full">
+          <button className="btn-outline cb-btn-full transition-all duration-300" onClick={() => toast.success(tDemo('templateAssigned'))}>
             <Building2 size={16} />
             <span>{t('assignDepartment')}</span>
           </button>
@@ -118,7 +121,7 @@ export default function TemplatesPage() {
                 <div className="cb-card-body">
                   <div className="cb-card-logo-area">
                     {logoPreview ? (
-                      <img src={logoPreview} alt="Logo" className="cb-card-logo-img" />
+                      <Image src={logoPreview} alt="Company logo" className="cb-card-logo-img" width={112} height={28} unoptimized />
                     ) : (
                       <span className="cb-card-logo-placeholder" style={{ color: primaryColor }}>iD+</span>
                     )}

@@ -55,6 +55,7 @@
     "dept_it": "تكنولوجيا المعلومات",
     "role_all": "جميع الأدوار",
     "role_admin": "مدير",
+    "role_manager": "مدير قسم",
     "role_employee": "موظف",
     "card_active": "نشط",
     "card_pending": "في انتظار الإعداد",
@@ -110,7 +111,11 @@
     "colCompany": "الشركة",
     "colSource": "بطاقة المصدر",
     "colStage": "المرحلة",
-    "colDate": "التاريخ"
+    "colDate": "التاريخ",
+    "paywallTitle": "CRM المتقدم (قريباً)",
+    "paywallDescription": "افتح إمكانيات قوية لتتبع العملاء المحتملين والتحليلات والمتابعات التلقائية. ستكون هذه الوحدة المميزة متاحة في الإصدار القادم لتعزيز مبيعاتك بشكل كبير.",
+    "notifyMe": "أبلغني",
+    "notifyRequested": "تمت إضافتك إلى قائمة الانتظار"
   },
   "Settings": {
     "title": "الإعدادات",
@@ -120,6 +125,7 @@
     "appearance": "المظهر",
     "notifications": "الإشعارات",
     "security": "الأمان",
+    "delegation": "التفويض",
     "profileInfo": "معلومات الملف الشخصي",
     "fullName": "الاسم الكامل",
     "emailLabel": "البريد الإلكتروني",
@@ -146,7 +152,25 @@
     "currentPassword": "كلمة المرور الحالية",
     "newPassword": "كلمة المرور الجديدة",
     "confirmPassword": "تأكيد كلمة المرور",
-    "updatePassword": "تحديث كلمة المرور"
+    "updatePassword": "تحديث كلمة المرور",
+    "delegationTitle": "تفويض الصلاحيات",
+    "delegationSubtitle": "فوّض الصلاحيات لمستخدم آخر بشكل مؤقت ولمدة محددة.",
+    "delegationSelectUser": "اختر المستخدم",
+    "delegationFrom": "من",
+    "delegationTo": "إلى",
+    "delegationRole": "الدور المؤقت",
+    "delegationRole_temporary_admin": "مدير مؤقت",
+    "delegationRole_temporary_manager": "مدير قسم مؤقت",
+    "delegationAssign": "تعيين التفويض",
+    "activeDelegations": "التفويضات النشطة",
+    "delegationUser": "المستخدم",
+    "delegationPeriod": "من - إلى",
+    "delegationActions": "الإجراءات",
+    "delegationRevoke": "إلغاء",
+    "delegationEmpty": "لا توجد تفويضات نشطة حتى الآن.",
+    "delegationCreated": "تم تعيين التفويض بنجاح.",
+    "delegationRevoked": "تم إلغاء التفويض بنجاح.",
+    "delegationDateError": "يرجى اختيار نطاق زمني صحيح."
   },
   "Approvals": {
     "title": "الموافقات على البطاقات",
@@ -157,5 +181,16 @@
     "status_pending": "في انتظار الإعداد",
     "status_review": "قيد المراجعة",
     "status_approved": "تمت الموافقة"
+  },
+  "Demo": {
+    "demoReset": "إعادة ضبط العرض",
+    "demoResetSuccess": "تمت إعادة ضبط بيانات العرض لتجهيز تقديم المستثمرين.",
+    "boardSynced": "تمت مزامنة إشعار اللوحة لعرض المستثمرين في السعودية.",
+    "cardApproved": "تمت الموافقة على البطاقة ونشرها بنجاح.",
+    "cardRejected": "تم رفض البطاقة وإشعار الموظف بتعديل التفاصيل.",
+    "templateSaved": "تم حفظ قالب مخصص للسوق السعودي بنجاح.",
+    "templateAssigned": "تم تعيين القالب للأقسام المحددة داخل السعودية.",
+    "crmExported": "تم إنشاء تصدير CRM للعرض التنفيذي السعودي.",
+    "waitlistJoined": "تمت إضافتك إلى قائمة أولوية CRM المتقدم."
   }
 }
