@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
@@ -18,6 +18,8 @@ export default function TemplatesPage() {
     linkedin: true,
     address: false,
   });
+  const primaryColorInputRef = useRef(null);
+  const accentColorInputRef = useRef(null);
   const [isFlipped, setIsFlipped] = useState(false);
 
   const toggleField = (key) => {
@@ -31,6 +33,17 @@ export default function TemplatesPage() {
       reader.onloadend = () => setLogoPreview(reader.result);
       reader.readAsDataURL(file);
     }
+  };
+
+  const openColorPicker = (inputRef) => {
+    if (!inputRef.current) {
+      return;
+    }
+    if (typeof inputRef.current.showPicker === 'function') {
+      inputRef.current.showPicker();
+      return;
+    }
+    inputRef.current.click();
   };
 
   return (
@@ -65,22 +78,22 @@ export default function TemplatesPage() {
           <div className="cb-colors">
             <div className="cb-color-row">
               <span className="cb-color-label">{t('primaryColor')}</span>
-              <div className="cb-color-pick">
+              <button type="button" className="cb-color-pick transition-all duration-300" onClick={() => openColorPicker(primaryColorInputRef)}>
                 <div className="cb-swatch" style={{ background: primaryColor }} />
-                <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="cb-color-input" />
+                <input ref={primaryColorInputRef} type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="cb-color-input" />
                 <span className="cb-color-hex">{primaryColor.toUpperCase()}</span>
-              </div>
+              </button>
             </div>
             <div className="cb-color-row">
               <span className="cb-color-label">{t('accentColor')}</span>
-              <div className="cb-color-pick">
+              <button type="button" className="cb-color-pick transition-all duration-300" onClick={() => openColorPicker(accentColorInputRef)}>
                 <div className="cb-swatch" style={{ background: accentColor }} />
-                <input type="color" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="cb-color-input" />
+                <input ref={accentColorInputRef} type="color" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="cb-color-input" />
                 <span className="cb-color-hex">{accentColor.toUpperCase()}</span>
-              </div>
+              </button>
             </div>
           </div>
-        </div>
+              </div>
 
         {/* Displayed Fields (Removed for Base Template) */}
         <div className="cb-section">
