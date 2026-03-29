@@ -87,7 +87,7 @@ export default function Dashboard() {
             <h3>{t('engagementOverTime')}</h3>
             <span className="subtitle">{t('engagementSubtitle')}</span>
           </div>
-          <div className="chart-container" style={{ height: '350px', marginTop: '1.5rem' }}>
+          <div className="chart-block-lg">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} direction={locale === 'ar' ? 'rtl' : 'ltr'}>
                 <defs>
@@ -139,12 +139,12 @@ export default function Dashboard() {
             <h3>{t('regionalPerformance')}</h3>
             <span className="subtitle">{t('regionalPerformanceSubtitle')}</span>
           </div>
-          <div style={{ height: '300px', marginTop: '1.25rem' }}>
+          <div className="chart-block">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={regionData} layout="vertical" margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
                 <XAxis type="number" stroke="#888888" tick={{ fill: '#888888' }} />
-                <YAxis type="category" dataKey="region" stroke="#888888" tick={{ fill: '#888888' }} width={80} />
+                <YAxis type="category" dataKey="region" stroke="#888888" tick={{ fill: '#888888' }} width={locale === 'ar' ? 96 : 80} />
                 <Tooltip contentStyle={{ backgroundColor: 'rgba(var(--color-black-rgb), 0.92)', border: '1px solid rgba(102, 252, 241, 0.2)', borderRadius: '8px' }} />
                 <Bar dataKey="deals" fill="url(#barGradient)" radius={[8, 8, 8, 8]} />
                 <defs>
@@ -163,7 +163,7 @@ export default function Dashboard() {
             <h3>{t('sourceMix')}</h3>
             <span className="subtitle">{t('sourceMixSubtitle')}</span>
           </div>
-          <div style={{ height: '300px', marginTop: '1.25rem' }}>
+          <div className="chart-block">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={sourceData} cx="50%" cy="50%" innerRadius={58} outerRadius={90} dataKey="value" stroke="none" paddingAngle={3}>
@@ -192,7 +192,7 @@ export default function Dashboard() {
           <h3>{t('pipelineHealth')}</h3>
           <span className="subtitle">{t('pipelineHealthSubtitle')}</span>
         </div>
-        <div style={{ height: '300px', marginTop: '1.25rem' }}>
+        <div className="chart-block">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={pipelineData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
