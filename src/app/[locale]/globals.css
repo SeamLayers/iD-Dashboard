@@ -436,6 +436,14 @@ body {
   transform: translateY(-4px);
 }
 
+.metric-card.is-static {
+  cursor: default;
+}
+
+.metric-card.is-static:hover {
+  transform: none;
+}
+
 .metric-header {
   display: flex;
   justify-content: space-between;
@@ -790,9 +798,16 @@ body {
   transition: all 0.3s ease;
 }
 
+.activity-item.is-static {
+  cursor: default;
+}
+
 /* RTL left translation, LTR right translation */
 .rtl .activity-item:hover { transform: translateX(-5px); }
 .ltr .activity-item:hover { transform: translateX(5px); }
+
+.rtl .activity-item.is-static:hover,
+.ltr .activity-item.is-static:hover { transform: none; }
 
 .activity-item:last-child {
   border-bottom: none;

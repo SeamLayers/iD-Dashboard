@@ -203,6 +203,11 @@
     "preview": "Preview Card",
     "approve": "Approve (Publish)",
     "reject": "Reject",
+    "rejectCardApproval": "Reject Card Approval",
+    "reasonForRejection": "Reason for Rejection",
+    "reasonForRejectionPlaceholder": "Please explain what needs to be fixed...",
+    "cancel": "Cancel",
+    "confirmRejection": "Confirm Rejection",
     "status_pending": "Pending Setup",
     "status_review": "Pending Review",
     "status_approved": "Approved"

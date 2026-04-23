@@ -203,6 +203,11 @@
     "preview": "معاينة البطاقة",
     "approve": "موافقة (نشر)",
     "reject": "رفض",
+    "rejectCardApproval": "رفض الموافقة على البطاقة",
+    "reasonForRejection": "سبب الرفض",
+    "reasonForRejectionPlaceholder": "يرجى توضيح ما الذي يحتاج إلى تعديل...",
+    "cancel": "إلغاء",
+    "confirmRejection": "تأكيد الرفض",
     "status_pending": "في انتظار الإعداد",
     "status_review": "قيد المراجعة",
     "status_approved": "تمت الموافقة"
