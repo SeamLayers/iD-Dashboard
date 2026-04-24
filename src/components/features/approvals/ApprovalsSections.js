@@ -142,58 +142,87 @@ export function RejectReasonDialog({ t, selectedRequest, isOpen, reason, setReas
     return null;
   }
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (reason.trim()) {
+      onConfirm();
+    }
+  };
+
   return (
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
-      overlayClassName="fixed inset-0 z-[1100] flex items-center justify-center bg-[rgba(var(--color-black-rgb),0.55)] px-4 backdrop-blur-md"
-      panelClassName="w-full max-w-[560px] overflow-hidden rounded-[28px] border border-red-500/20 bg-[rgba(var(--color-black-rgb),0.78)] text-[var(--text-primary)] shadow-[0_30px_100px_rgba(0,0,0,0.5)] backdrop-blur-xl"
-      panelStyle={{}}
-      ariaLabelledBy="reject-card-approval-title"
+      panelClassName="modal-box glass-panel"
+      panelStyle={{ border: '1px solid rgba(239, 83, 80, 0.3)', boxShadow: '0 8px 32px 0 rgba(239, 83, 80, 0.15)' }}
     >
-      <div className="border-b border-red-500/10 bg-gradient-to-r from-red-500/10 via-transparent to-transparent px-6 py-5">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-red-500/10 text-red-500">
-            <AlertTriangle size={20} />
-          </div>
-          <div className="min-w-0">
-            <h2 id="reject-card-approval-title" className="text-xl font-semibold tracking-tight text-red-500">
-              {t('rejectCardApproval')}
-            </h2>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">
-              {selectedRequest.name} · {selectedRequest.jobTitle}
-            </p>
-          </div>
-        </div>
+      <div className="modal-header">
+        <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#EF5350' }}>
+          <AlertTriangle size={20} />
+          {t('rejectCardApproval')}
+        </h2>
+        <button className="modal-close" onClick={onClose}><X size={18} /></button>
       </div>
 
-      <form onSubmit={onConfirm} className="px-6 py-5">
-        <label htmlFor="rejection-reason" className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
-          {t('reasonForRejection')}
-        </label>
-        <textarea
-          id="rejection-reason"
-          required
-          autoFocus
-          value={reason}
-          onChange={(event) => setReason(event.target.value)}
-          placeholder={t('reasonForRejectionPlaceholder')}
-          className="min-h-[140px] w-full resize-none rounded-[18px] border border-[rgba(var(--color-white-rgb),0.08)] bg-[rgba(var(--color-white-rgb),0.05)] px-4 py-3 text-sm text-[var(--text-primary)] outline-none transition placeholder:text-[var(--text-muted)] focus:border-red-400 focus:ring-2 focus:ring-red-500/20"
-          dir="auto"
-        />
+      <p className="modal-desc" style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>
+        {t('reasonForRejectionPlaceholder')?.split('...')[0] || `You are rejecting the card layout submitted by ${selectedRequest.name}`} 
+        <strong style={{ color: 'var(--text-primary)', marginLeft: '4px' }}>
+          {selectedRequest.name}
+        </strong>
+      </p>
 
-        <div className="mt-6 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex items-center justify-center rounded-xl border border-[rgba(var(--color-white-rgb),0.08)] bg-[rgba(var(--color-black-rgb),0.1)] px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] transition hover:bg-[rgba(var(--color-white-rgb),0.08)]"
-          >
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '2rem' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-muted)' }} htmlFor="rejection-reason">
+            {t('reasonForRejection')}
+          </label>
+          <textarea
+            id="rejection-reason"
+            required
+            autoFocus
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            placeholder={t('reasonForRejectionPlaceholder')}
+            style={{
+              width: '100%',
+              minHeight: '130px',
+              background: 'rgba(var(--color-black-rgb), 0.2)',
+              border: '1px solid rgba(239, 83, 80, 0.2)',
+              borderRadius: '12px',
+              padding: '1rem',
+              color: 'var(--text-primary)',
+              fontSize: '0.9rem',
+              outline: 'none',
+              transition: 'all 0.3s ease',
+              resize: 'none'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#EF5350';
+              e.target.style.boxShadow = '0 0 0 3px rgba(239, 83, 80, 0.1)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'rgba(239, 83, 80, 0.2)';
+              e.target.style.boxShadow = 'none';
+            }}
+            dir="auto"
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button type="button" className="btn-outline" style={{ flex: 1, justifyContent: 'center' }} onClick={onClose}>
             {t('cancel')}
           </button>
-          <button
+          <button 
             type="submit"
+            className="btn-danger" 
+            style={{ 
+              flex: 1, 
+              justifyContent: 'center', 
+              opacity: !reason.trim() ? 0.5 : 1, 
+              cursor: !reason.trim() ? 'not-allowed' : 'pointer',
+              pointerEvents: !reason.trim() ? 'none' : 'auto'
+            }} 
             disabled={!reason.trim()}
-            className="inline-flex items-center justify-center rounded-xl border border-red-500/30 bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-red-600"
           >
             {t('confirmRejection')}
           </button>
