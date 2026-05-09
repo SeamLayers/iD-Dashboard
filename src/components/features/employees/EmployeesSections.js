@@ -1,32 +1,20 @@
 "use client";
 
-import { Plus, Upload, Search, MoreVertical, ChevronLeft, ChevronRight, Edit2, Trash2, X, Check } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import {
+  Plus, Upload, Search, MoreVertical, Edit2, Trash2, X, Check, Mail, Phone, Hash,
+} from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
 
-function EmployeeFormFields({ t, values, setValues, departments, roles }) {
-  return (
-    <>
-      <div className="modal-field"><label>{t('colName')}</label><input value={values.name} onChange={(event) => setValues({ ...values, name: event.target.value })} className="modal-input" /></div>
-      <div className="modal-field"><label>{t('email')}</label><input value={values.email} onChange={(event) => setValues({ ...values, email: event.target.value })} className="modal-input" /></div>
-      <div className="modal-field"><label>{t('colJobTitle')}</label><input value={values.jobTitle} onChange={(event) => setValues({ ...values, jobTitle: event.target.value })} className="modal-input" /></div>
-      <div className="modal-field">
-        <label>{t('colDepartment')}</label>
-        <select value={values.department} onChange={(event) => setValues({ ...values, department: event.target.value })} className="modal-input">
-          {departments.filter((department) => department !== 'all').map((department) => (
-            <option key={department} value={department}>{t(`dept_${department}`)}</option>
-          ))}
-        </select>
-      </div>
-      <div className="modal-field">
-        <label>{t('colRole')}</label>
-        <select value={values.role} onChange={(event) => setValues({ ...values, role: event.target.value })} className="modal-input">
-          {roles.filter((role) => role !== 'all').map((role) => (
-            <option key={role} value={role}>{t(`role_${role}`)}</option>
-          ))}
-        </select>
-      </div>
-    </>
-  );
+function getInitials(name = '') {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 }
 
 export function EmployeesHeader({ t, onSendInvitations, onBulkUpload, onAddEmployee }) {
@@ -37,7 +25,11 @@ export function EmployeesHeader({ t, onSendInvitations, onBulkUpload, onAddEmplo
         <p className="emp-subtitle">{t('subtitle')}</p>
       </div>
       <div className="emp-header-actions">
-        <button className="btn-primary transition-all duration-300" style={{ background: 'var(--accent-teal)', borderColor: 'var(--accent-teal)' }} onClick={onSendInvitations}>
+        <button
+          className="btn-primary transition-all duration-300"
+          style={{ background: 'var(--accent-teal)', borderColor: 'var(--accent-teal)' }}
+          onClick={onSendInvitations}
+        >
           <Check size={16} />
           <span>{t('sendInvitations')}</span>
         </button>
@@ -54,7 +46,17 @@ export function EmployeesHeader({ t, onSendInvitations, onBulkUpload, onAddEmplo
   );
 }
 
-export function EmployeesFilters({ t, searchQuery, setSearchQuery, departmentFilter, setDepartmentFilter, roleFilter, setRoleFilter, departments, roles }) {
+export function EmployeesFilters({
+  t,
+  searchQuery,
+  setSearchQuery,
+  companyId,
+  setCompanyId,
+  branchId,
+  setBranchId,
+  companies,
+  branches,
+}) {
   return (
     <div className="emp-filters">
       <div className="emp-search">
@@ -63,7 +65,7 @@ export function EmployeesFilters({ t, searchQuery, setSearchQuery, departmentFil
           type="text"
           placeholder={t('searchPlaceholder')}
           value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)}
           className="emp-search-input"
         />
         {searchQuery && (
@@ -72,17 +74,32 @@ export function EmployeesFilters({ t, searchQuery, setSearchQuery, departmentFil
           </button>
         )}
       </div>
-      <select value={departmentFilter} onChange={(event) => setDepartmentFilter(event.target.value)} className="emp-select">
-        {departments.map((department) => <option key={department} value={department}>{t(`dept_${department}`)}</option>)}
+      <select
+        value={companyId}
+        onChange={(e) => setCompanyId(e.target.value)}
+        className="emp-select"
+      >
+        <option value="">{t('filterByCompany')}</option>
+        {companies.map((c) => (
+          <option key={c.id} value={c.id}>{c.name}</option>
+        ))}
       </select>
-      <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)} className="emp-select">
-        {roles.map((role) => <option key={role} value={role}>{t(`role_${role}`)}</option>)}
+      <select
+        value={branchId}
+        onChange={(e) => setBranchId(e.target.value)}
+        className="emp-select"
+      >
+        <option value="">{t('filterByBranch')}</option>
+        {branches.map((b) => (
+          <option key={b.id} value={b.id}>{b.name}</option>
+        ))}
       </select>
     </div>
   );
 }
 
 export function EmployeesTable({ t, employees, openMenuId, setOpenMenuId, onEdit, onDelete }) {
+  const tCommon = useTranslations('Common');
   return (
     <div className="emp-table-wrap glass-panel">
       <table className="emp-table">
@@ -91,7 +108,7 @@ export function EmployeesTable({ t, employees, openMenuId, setOpenMenuId, onEdit
             <th>{t('colName')}</th>
             <th>{t('colJobTitle')}</th>
             <th>{t('colDepartment')}</th>
-            <th>{t('colRole')}</th>
+            <th>{t('branch')}</th>
             <th>{t('colCardStatus')}</th>
             <th className="th-actions">{t('colActions')}</th>
           </tr>
@@ -100,37 +117,51 @@ export function EmployeesTable({ t, employees, openMenuId, setOpenMenuId, onEdit
           {employees.length === 0 ? (
             <tr><td colSpan="6" className="emp-empty">{t('noResults')}</td></tr>
           ) : (
-            employees.map((employee) => (
-              <tr key={employee.id}>
-                <td>
-                  <div className="emp-user">
-                    <div className="emp-avatar">{employee.avatar}</div>
-                    <div><p className="emp-name">{employee.name}</p><p className="emp-email">{employee.email}</p></div>
-                  </div>
-                </td>
-                <td className="emp-job">{employee.jobTitle}</td>
-                <td>{t(`dept_${employee.department}`)}</td>
-                <td><span className={`emp-role-badge role-${employee.role}`}>{t(`role_${employee.role}`)}</span></td>
-                <td><span className={`emp-status-pill status-${employee.cardStatus}`}>{t(`card_${employee.cardStatus}`)}</span></td>
-                <td className="td-actions">
-                  <div className="kebab-wrapper">
-                    <button className="kebab-btn" onClick={() => setOpenMenuId(openMenuId === employee.id ? null : employee.id)}>
-                      <MoreVertical size={18} />
-                    </button>
-                    {openMenuId === employee.id && (
-                      <div className="kebab-menu glass-panel">
-                        <button className="kebab-item" onClick={() => onEdit(employee)}>
-                          <Edit2 size={14} /><span>{t('edit')}</span>
-                        </button>
-                        <button className="kebab-item kebab-danger" onClick={() => onDelete(employee.id)}>
-                          <Trash2 size={14} /><span>{t('delete')}</span>
-                        </button>
+            employees.map((employee) => {
+              const initials = getInitials(employee.name);
+              const status = employee.status || 'active';
+              return (
+                <tr key={employee.id}>
+                  <td>
+                    <div className="emp-user">
+                      <div className="emp-avatar">
+                        {employee.logo ? <img src={employee.logo} alt={employee.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} /> : initials}
                       </div>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))
+                      <div>
+                        <p className="emp-name">{employee.name || '—'}</p>
+                        <p className="emp-email">{employee.email || '—'}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="emp-job">{employee.employee_number || '—'}</td>
+                  <td>{employee.department?.name || '—'}</td>
+                  <td>{employee.branch?.name || '—'}</td>
+                  <td>
+                    <span className={`emp-status-pill status-${status}`}>{t(`status_${status}`)}</span>
+                  </td>
+                  <td className="td-actions">
+                    <div className="kebab-wrapper">
+                      <button
+                        className="kebab-btn"
+                        onClick={() => setOpenMenuId(openMenuId === employee.id ? null : employee.id)}
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+                      {openMenuId === employee.id && (
+                        <div className="kebab-menu glass-panel">
+                          <button className="kebab-item" onClick={() => onEdit(employee)}>
+                            <Edit2 size={14} /><span>{tCommon('edit')}</span>
+                          </button>
+                          <button className="kebab-item kebab-danger" onClick={() => onDelete(employee)}>
+                            <Trash2 size={14} /><span>{tCommon('delete')}</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })
           )}
         </tbody>
       </table>
@@ -138,84 +169,183 @@ export function EmployeesTable({ t, employees, openMenuId, setOpenMenuId, onEdit
   );
 }
 
-export function EmployeesPagination({ t, totalPages, currentPage, setCurrentPage, filteredEmployeesLength, itemsPerPage }) {
-  if (totalPages <= 1) {
-    return null;
-  }
-
-  return (
-    <div className="emp-pagination">
-      <span className="emp-page-info">
-        {t('showing', { from: (currentPage - 1) * itemsPerPage + 1, to: Math.min(currentPage * itemsPerPage, filteredEmployeesLength), total: filteredEmployeesLength })}
-      </span>
-      <div className="emp-page-controls">
-        <button className="emp-page-btn" disabled={currentPage === 1} onClick={() => setCurrentPage((page) => page - 1)}><ChevronLeft size={18} /></button>
-        {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-          <button key={page} className={`emp-page-num ${page === currentPage ? 'active' : ''}`} onClick={() => setCurrentPage(page)}>{page}</button>
-        ))}
-        <button className="emp-page-btn" disabled={currentPage === totalPages} onClick={() => setCurrentPage((page) => page + 1)}><ChevronRight size={18} /></button>
-      </div>
-    </div>
-  );
-}
-
-export function DeleteEmployeeDialog({ t, isOpen, onClose, onConfirm }) {
+export function DeleteEmployeeDialog({ t, isOpen, onClose, onConfirm, isPending }) {
+  const tCommon = useTranslations('Common');
   return (
     <Dialog isOpen={isOpen} onClose={onClose}>
-      <h3 className="modal-title">{t('confirmDelete')}</h3>
-      <p className="modal-desc">{t('confirmDeleteDesc')}</p>
+      <h3 className="modal-title">{t('deleteEmployee')}</h3>
+      <p className="modal-desc">{t('deleteEmployeeDesc')}</p>
       <div className="modal-actions">
-        <button className="btn-outline" onClick={onClose}>{t('cancel')}</button>
-        <button className="btn-danger" onClick={onConfirm}><Trash2 size={14} /><span>{t('delete')}</span></button>
+        <button className="btn-outline" onClick={onClose}>{tCommon('cancel')}</button>
+        <button className="btn-danger" onClick={onConfirm} disabled={isPending}>
+          <Trash2 size={14} /><span>{tCommon('delete')}</span>
+        </button>
       </div>
     </Dialog>
   );
 }
 
-export function AddEmployeeDialog({ t, isOpen, onClose, onSubmit, departments, roles }) {
+export function EmployeeFormDialog({
+  t,
+  isOpen,
+  onClose,
+  initial,
+  companies,
+  branches,
+  departments,
+  onSubmit,
+  isPending,
+}) {
+  const tCommon = useTranslations('Common');
+  const isEdit = Boolean(initial?.id);
+  const [companyId, setCompanyId] = useState('');
+  const [branchId, setBranchId] = useState('');
+  const [departmentId, setDepartmentId] = useState('');
+  const [userId, setUserId] = useState('');
+  const [employeeNumber, setEmployeeNumber] = useState('');
+  const [iqamaNumber, setIqamaNumber] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [status, setStatus] = useState('active');
+  const [logo, setLogo] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const fileRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setCompanyId(initial?.company_id ? String(initial.company_id) : initial?.company?.id ? String(initial.company.id) : '');
+    setBranchId(initial?.branch_id ? String(initial.branch_id) : initial?.branch?.id ? String(initial.branch.id) : '');
+    setDepartmentId(initial?.department_id ? String(initial.department_id) : initial?.department?.id ? String(initial.department.id) : '');
+    setUserId(initial?.user_id ? String(initial.user_id) : initial?.user?.id ? String(initial.user.id) : '');
+    setEmployeeNumber(initial?.employee_number || '');
+    setIqamaNumber(initial?.iqama_number || '');
+    setName(initial?.name || '');
+    setEmail(initial?.email || '');
+    setPhone(initial?.phone || '');
+    setStatus(initial?.status || 'active');
+    setLogo(null);
+    setLogoPreview(initial?.logo || null);
+  }, [isOpen, initial]);
+
+  const filteredBranches = companyId
+    ? branches.filter((b) => String(b.company_id) === String(companyId))
+    : branches;
+  const filteredDepartments = companyId
+    ? departments.filter((d) => String(d.company_id) === String(companyId))
+    : departments;
+
+  const handleFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogo(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setLogoPreview(ev.target?.result || null);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const payload = {
+      company_id: Number(companyId),
+      branch_id: Number(branchId),
+      department_id: departmentId ? Number(departmentId) : undefined,
+      user_id: Number(userId),
+      employee_number: employeeNumber,
+      iqama_number: iqamaNumber || undefined,
+      name,
+      email: email || undefined,
+      phone: phone || undefined,
+      status,
+    };
+    if (logo) payload.logo = logo;
+    onSubmit(payload);
+  };
+
   return (
     <Dialog isOpen={isOpen} onClose={onClose} panelClassName="modal-box glass-panel modal-form">
       <div className="modal-header">
-        <h3 className="modal-title">{t('addEmployee')}</h3>
-        <button className="modal-close" onClick={onClose}><X size={18} /></button>
+        <h3 className="modal-title">{isEdit ? t('editEmployee') : t('addEmployee')}</h3>
+        <button className="modal-close" onClick={onClose} type="button"><X size={18} /></button>
       </div>
-      <form onSubmit={onSubmit}>
-        <div className="modal-field"><label>{t('colName')}</label><input name="name" required className="modal-input" /></div>
-        <div className="modal-field"><label>{t('email')}</label><input name="email" type="email" required className="modal-input" /></div>
-        <div className="modal-field"><label>{t('colJobTitle')}</label><input name="jobTitle" required className="modal-input" /></div>
+      <form onSubmit={handleSubmit}>
         <div className="modal-field">
-          <label>{t('colDepartment')}</label>
-          <select name="department" className="modal-input">{departments.filter((department) => department !== 'all').map((department) => <option key={department} value={department}>{t(`dept_${department}`)}</option>)}</select>
+          <label>{t('company')}</label>
+          <select className="modal-input" required value={companyId} onChange={(e) => { setCompanyId(e.target.value); setBranchId(''); setDepartmentId(''); }}>
+            <option value="">{t('filterByCompany')}</option>
+            {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
         </div>
         <div className="modal-field">
-          <label>{t('colRole')}</label>
-          <select name="role" defaultValue="employee" className="modal-input">{roles.filter((role) => role !== 'all').map((role) => <option key={role} value={role}>{t(`role_${role}`)}</option>)}</select>
+          <label>{t('branch')}</label>
+          <select className="modal-input" required value={branchId} onChange={(e) => setBranchId(e.target.value)}>
+            <option value="">{t('filterByBranch')}</option>
+            {filteredBranches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
+        </div>
+        <div className="modal-field">
+          <label>{t('department')}</label>
+          <select className="modal-input" value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}>
+            <option value="">—</option>
+            {filteredDepartments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
+        </div>
+        <div className="modal-field">
+          <label><Hash size={13} style={{ display: 'inline', marginInlineEnd: 4 }} />{t('user')}</label>
+          <input className="modal-input" type="number" required value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="5" />
+          <small style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{t('userIdHint')}</small>
+        </div>
+        <div className="modal-field">
+          <label>{t('employeeNumber')}</label>
+          <input className="modal-input" required value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="EMP-001" />
+        </div>
+        <div className="modal-field">
+          <label>{t('iqamaNumber')}</label>
+          <input className="modal-input" value={iqamaNumber} onChange={(e) => setIqamaNumber(e.target.value)} />
+        </div>
+        <div className="modal-field">
+          <label>{t('name')}</label>
+          <input className="modal-input" required value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <div className="modal-field">
+          <label><Mail size={13} style={{ display: 'inline', marginInlineEnd: 4 }} />{t('email')}</label>
+          <input className="modal-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div className="modal-field">
+          <label><Phone size={13} style={{ display: 'inline', marginInlineEnd: 4 }} />{t('phone')}</label>
+          <input className="modal-input" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </div>
+        <div className="modal-field">
+          <label>{t('status')}</label>
+          <select className="modal-input" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="active">{t('status_active')}</option>
+            <option value="inactive">{t('status_inactive')}</option>
+          </select>
+        </div>
+        <div className="modal-field">
+          <label>{t('logo')}</label>
+          <label className="file-upload">
+            <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png" onChange={handleFile} />
+            <div className="file-upload-icon"><Upload size={20} /></div>
+            <div className="file-upload-text">
+              <span>{logo?.name || (logoPreview ? 'Replace photo' : 'Upload photo')}</span>
+              <small>{t('uploadHint')}</small>
+            </div>
+          </label>
+          {logoPreview && (
+            <div className="file-preview">
+              <img src={logoPreview} alt="Preview" />
+            </div>
+          )}
         </div>
         <div className="modal-actions">
-          <button type="button" className="btn-outline" onClick={onClose}>{t('cancel')}</button>
-          <button type="submit" className="btn-primary"><Plus size={14} /><span>{t('addEmployee')}</span></button>
+          <button type="button" className="btn-outline" onClick={onClose}>{tCommon('cancel')}</button>
+          <button type="submit" className="btn-primary" disabled={isPending}>
+            {isEdit ? <Check size={14} /> : <Plus size={14} />}
+            <span>{isEdit ? t('saveChanges') : t('addEmployee')}</span>
+          </button>
         </div>
       </form>
-    </Dialog>
-  );
-}
-
-export function EditEmployeeDialog({ t, isOpen, onClose, employee, onChange, onSave, departments, roles }) {
-  if (!employee) {
-    return null;
-  }
-
-  return (
-    <Dialog isOpen={isOpen} onClose={onClose} panelClassName="modal-box glass-panel modal-form">
-      <div className="modal-header">
-        <h3 className="modal-title">{t('editEmployee')}</h3>
-        <button className="modal-close" onClick={onClose}><X size={18} /></button>
-      </div>
-      <EmployeeFormFields t={t} values={employee} setValues={onChange} departments={departments} roles={roles} />
-      <div className="modal-actions">
-        <button className="btn-outline" onClick={onClose}>{t('cancel')}</button>
-        <button className="btn-primary" onClick={onSave}><Check size={14} /><span>{t('saveChanges')}</span></button>
-      </div>
     </Dialog>
   );
 }
