@@ -3597,3 +3597,405 @@ body {
   background: rgba(102, 252, 241, 0.03);
 }
 
+
+/* ==========================================================================
+   Register page
+   --------------------------------------------------------------------------
+   Two-column layout: form card on the left, role-info aside on the right.
+   On narrow viewports the aside collapses below the form.
+   ========================================================================== */
+.register-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .register-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.register-card {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.register-card .auth-field {
+  margin-bottom: 1.1rem;
+}
+
+.auth-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 540px) {
+  .auth-field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field-icon {
+  display: inline;
+  margin-inline-end: 6px;
+  vertical-align: middle;
+  color: var(--text-muted);
+}
+
+.field-hint {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.select-wrap {
+  position: relative;
+}
+
+.select-wrap select.auth-input {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-inline-end: 2.5rem;
+  cursor: pointer;
+}
+
+.select-wrap select.auth-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.select-caret {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.password-wrap {
+  position: relative;
+}
+
+.password-wrap .auth-input {
+  padding-inline-end: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+}
+
+.register-aside {
+  padding: 1.5rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.aside-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.aside-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.aside-list li {
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.85rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.aside-list li svg {
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.aside-list li strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.aside-list li p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.aside-success {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0.08),
+    rgba(16, 185, 129, 0.02)
+  );
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.aside-success h4 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.aside-success p {
+  margin: 0 0 0.25rem;
+}
+
+.aside-success .muted {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.pill-success {
+  background: rgba(16, 185, 129, 0.15);
+  color: rgb(110, 231, 183);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.pill-info {
+  background: rgba(99, 102, 241, 0.15);
+  color: rgb(165, 180, 252);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.pill-muted {
+  background: rgba(148, 163, 184, 0.12);
+  color: rgb(203, 213, 225);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+/* ==========================================================================
+   My Company (owner) page
+   ========================================================================== */
+.my-company {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.my-company-hero {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.75rem;
+}
+
+@media (max-width: 720px) {
+  .my-company-hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+}
+
+.my-company-logo {
+  width: 96px;
+  height: 96px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.my-company-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.logo-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--accent);
+}
+
+.my-company-name {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--text-primary);
+}
+
+.my-company-stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1.1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  min-width: 88px;
+}
+
+.stat-tile svg {
+  color: var(--accent);
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.my-company-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 720px) {
+  .my-company-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.my-company-card {
+  padding: 1.5rem;
+}
+
+.my-company-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  margin: 0 0 1rem;
+  color: var(--text-primary);
+}
+
+.kv-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.kv-list li {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+
+.kv-list li svg {
+  color: var(--accent);
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.kv-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 0.15rem;
+}
+
+.kv-value {
+  color: var(--text-primary);
+  font-weight: 500;
+  text-decoration: none;
+  word-break: break-word;
+}
+
+a.kv-value:hover {
+  color: var(--accent);
+}
+
+.resource-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.resource-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.resource-list li svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.resource-list li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.resource-list li strong {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.resource-list li .muted {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

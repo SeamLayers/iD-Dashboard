@@ -48,7 +48,11 @@
     "crmLeads": "العملاء المحتملون",
     "settings": "الإعدادات",
     "by": "بواسطة محاور",
-    "superAdmin": "المدير العام"
+    "superAdmin": "المدير العام",
+    "register": "إنشاء مستخدم",
+    "myCompany": "شركتي",
+    "owner": "مالك",
+    "member": "عضو"
   },
   "TopNavbar": {
     "searchPlaceholder": "ابحث عن موظفين، عملاء، قوالب...",
@@ -409,5 +413,71 @@
     "templateAssigned": "تم تعيين القالب للأقسام المحددة داخل السعودية.",
     "crmExported": "تم إنشاء تصدير CRM للعرض التنفيذي السعودي.",
     "waitlistJoined": "تمت إضافتك إلى قائمة أولوية CRM المتقدم."
+  },
+  "Register": {
+    "title": "إنشاء مستخدم",
+    "subtitle": "أنشئ حسابًا جديدًا وحدد دوره.",
+    "formTitle": "حساب جديد",
+    "formSubtitle": "حدّد بيانات الدخول واختر دور المستخدم.",
+    "name": "الاسم الكامل",
+    "namePlaceholder": "جين دو",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "user@company.com",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "userType": "نوع الحساب",
+    "createUser": "إنشاء المستخدم",
+    "creating": "جارٍ الإنشاء…",
+    "createSuccess": "تم إنشاء المستخدم بنجاح.",
+    "passwordTooShort": "يجب ألا تقل كلمة المرور عن 8 أحرف.",
+    "passwordMismatch": "كلمتا المرور غير متطابقتين.",
+    "invalidUserType": "لا يمكنك إنشاء حسابات بهذا النوع.",
+    "forbidden": "فقط المشرف العام أو المالك يستطيع إنشاء مستخدمين جدد.",
+    "userTypes": {
+      "superadmin": "مشرف عام",
+      "owner": "مالك شركة",
+      "employee": "موظف"
+    },
+    "userTypeHints": {
+      "superadmin": "وصول كامل لجميع الشركات على المنصة.",
+      "owner": "يدير شركة واحدة — الفروع والأقسام والمشاريع والموظفين.",
+      "employee": "مستخدم تطبيق جوال للقراءة فقط مرتبط بالشركة."
+    },
+    "userTypeDescriptions": {
+      "superadmin": "مشرف عام للمنصة. استخدم فقط لأشخاص موثوقين.",
+      "owner": "سيُربط بشركة واحدة من صفحة الشركات.",
+      "employee": "سيظهر في تطبيق الجوال بعد ربطه بسجل موظف."
+    },
+    "aside": {
+      "title": "الأدوار باختصار",
+      "lastCreated": "آخر مستخدم تم إنشاؤه"
+    }
+  },
+  "MyCompany": {
+    "title": "شركتي",
+    "subtitle": "لمحة عن الشركة المرتبطة بحسابك.",
+    "forbidden": "هذه الصفحة متاحة لمالكي الشركات فقط.",
+    "notLinkedTitle": "لا توجد شركة مرتبطة بعد",
+    "notLinkedSubtitle": "اطلب من المشرف العام ربط حسابك بشركة.",
+    "manageBranches": "إدارة الفروع",
+    "manageEmployees": "إدارة الموظفين",
+    "emptyBranches": "لا توجد فروع بعد.",
+    "emptyEmployees": "لا يوجد موظفون بعد.",
+    "stats": {
+      "employees": "الموظفون",
+      "branches": "الفروع"
+    },
+    "sections": {
+      "contact": "بيانات التواصل",
+      "owner": "المالك",
+      "branches": "الفروع",
+      "employees": "الموظفون"
+    },
+    "fields": {
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "ownerName": "اسم المالك",
+      "ownerEmail": "بريد المالك"
+    }
   }
 }

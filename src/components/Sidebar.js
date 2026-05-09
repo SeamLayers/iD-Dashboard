@@ -12,6 +12,7 @@ import {
   CreditCard,
   Settings,
   CheckSquare,
+  UserCog,
 } from 'lucide-react';
 import { useAuth } from '@/shared/auth/AuthProvider';
 
@@ -21,9 +22,16 @@ export default function Sidebar() {
   const { hasAnyPermission, hasRole } = useAuth();
 
   const isSuperAdmin = hasRole('superadmin');
+  const isOwner = hasRole('owner');
 
   const menuItems = [
     { name: t('dashboard'), path: '/', icon: <LayoutDashboard size={20} /> },
+    // Owner-only landing page powered by GET /dashboard/owner/company.
+    isOwner && {
+      name: t('myCompany'),
+      path: '/my-company',
+      icon: <Building2 size={20} />,
+    },
     isSuperAdmin && {
       name: t('companies'),
       path: '/companies',
@@ -60,6 +68,13 @@ export default function Sidebar() {
       icon: <UserPlus size={20} />,
       anyOf: ['employee_project.view'],
     },
+    // POST /dashboard/register — admin creates user accounts.
+    // Open to superadmin and owner.
+    (isSuperAdmin || isOwner) && {
+      name: t('register'),
+      path: '/register',
+      icon: <UserCog size={20} />,
+    },
     { name: t('approvals'), path: '/approvals', icon: <CheckSquare size={20} /> },
     { name: t('templates'), path: '/templates', icon: <CreditCard size={20} /> },
     { name: t('settings'), path: '/settings', icon: <Settings size={20} /> },
@@ -95,7 +110,14 @@ export default function Sidebar() {
 
       <div className="sidebar-footer">
         <div className="glowing-line shrink-line"></div>
-        <p className="version">v1.0 - {t('superAdmin')}</p>
+        <p className="version">
+          v1.0 -{' '}
+          {isSuperAdmin
+            ? t('superAdmin')
+            : isOwner
+              ? t('owner')
+              : t('member')}
+        </p>
       </div>
     </aside>
   );
