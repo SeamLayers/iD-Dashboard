@@ -1,23 +1,118 @@
 "use client";
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
-import { Users, CreditCard, ScanLine, TrendingUp, Activity, Target, CalendarCheck2, Building2, RefreshCcw } from 'lucide-react';
-import { DashboardMetricsGrid, DashboardEngagementSection, DashboardAnalyticsGrid, DashboardPipelineSection } from '@/components/features/dashboard/DashboardSections';
+import {
+  Users,
+  CreditCard,
+  ScanLine,
+  TrendingUp,
+  Activity,
+  Target,
+  CalendarCheck2,
+  Building2,
+  RefreshCcw,
+  MapPin,
+  Briefcase,
+  Folder,
+} from 'lucide-react';
+import {
+  DashboardMetricsGrid,
+  DashboardEngagementSection,
+  DashboardAnalyticsGrid,
+  DashboardPipelineSection,
+} from '@/components/features/dashboard/DashboardSections';
+import {
+  useCompanies,
+  useBranches,
+  useDepartments,
+  useEmployees,
+  useProjects,
+  useEmployeeProjects,
+} from '@/shared/api/hooks';
+
+const formatNumber = (n) => {
+  if (n === null || n === undefined) return '—';
+  return new Intl.NumberFormat('en-US').format(n);
+};
 
 export default function Dashboard() {
   const t = useTranslations('Dashboard');
+  const tSidebar = useTranslations('Sidebar');
   const tAct = useTranslations('Activity');
   const locale = useLocale();
 
+  const { data: companiesData } = useCompanies({ per_page: 1 });
+  const { data: branchesData } = useBranches({ per_page: 1 });
+  const { data: departmentsData } = useDepartments({ per_page: 1 });
+  const { data: employeesData } = useEmployees({ per_page: 1 });
+  const { data: projectsData } = useProjects({ per_page: 1 });
+  const { data: assignmentsData } = useEmployeeProjects({ per_page: 1 });
+
   const metrics = [
-    { title: t('totalEmployees'), value: "248", trend: "+12%", trendUp: true, icon: <Users size={24} />, href: '/employees' },
-    { title: t('activeSmartCards'), value: "195", trend: "+5%", trendUp: true, icon: <CreditCard size={24} />, href: '/templates' },
-    { title: t('totalCardScans'), value: "8,432", trend: "+24%", trendUp: true, icon: <ScanLine size={24} />, href: null },
-    { title: t('newCrmLeads'), value: "1,204", trend: "+18%", trendUp: true, icon: <TrendingUp size={24} />, href: null },
-    { title: t('conversionRate'), value: "31.8%", trend: "+3.2%", trendUp: true, icon: <Target size={24} />, href: null },
-    { title: t('meetingsBooked'), value: "286", trend: "+11%", trendUp: true, icon: <CalendarCheck2 size={24} />, href: null },
-    { title: t('enterpriseAccounts'), value: "74", trend: "+9%", trendUp: true, icon: <Building2 size={24} />, href: '/employees' },
-    { title: t('renewalPipeline'), value: "SAR 2.9M", trend: "-2%", trendUp: false, icon: <RefreshCcw size={24} />, href: '/settings' },
+    {
+      title: tSidebar('companies'),
+      value: formatNumber(companiesData?.total),
+      trend: '+0%',
+      trendUp: true,
+      icon: <Building2 size={24} />,
+      href: '/companies',
+    },
+    {
+      title: tSidebar('branches'),
+      value: formatNumber(branchesData?.total),
+      trend: '+0%',
+      trendUp: true,
+      icon: <MapPin size={24} />,
+      href: '/branches',
+    },
+    {
+      title: tSidebar('departments'),
+      value: formatNumber(departmentsData?.total),
+      trend: '+0%',
+      trendUp: true,
+      icon: <Briefcase size={24} />,
+      href: '/departments',
+    },
+    {
+      title: t('totalEmployees'),
+      value: formatNumber(employeesData?.total),
+      trend: '+0%',
+      trendUp: true,
+      icon: <Users size={24} />,
+      href: '/employees',
+    },
+    {
+      title: tSidebar('projects'),
+      value: formatNumber(projectsData?.total),
+      trend: '+0%',
+      trendUp: true,
+      icon: <Folder size={24} />,
+      href: '/projects',
+    },
+    {
+      title: tSidebar('assignments'),
+      value: formatNumber(assignmentsData?.total),
+      trend: '+0%',
+      trendUp: true,
+      icon: <Target size={24} />,
+      href: '/assignments',
+    },
+    {
+      title: t('activeSmartCards'),
+      value: '195',
+      trend: '+5%',
+      trendUp: true,
+      icon: <CreditCard size={24} />,
+      href: '/templates',
+    },
+    {
+      title: t('totalCardScans'),
+      value: '8,432',
+      trend: '+24%',
+      trendUp: true,
+      icon: <ScanLine size={24} />,
+      href: null,
+    },
   ];
 
   const chartData = [
@@ -55,10 +150,10 @@ export default function Dashboard() {
   ];
 
   const recentActivity = [
-    { id: 1, text: tAct('updateCard'), time: tAct('minsAgo', { count: 2 }), type: "update", href: '/templates' },
-    { id: 2, text: tAct('newLead'), time: tAct('minsAgo', { count: 15 }), type: "lead", href: null },
-    { id: 3, text: tAct('marketingRequest'), time: tAct('hourAgo', { count: 1 }), type: "request", href: '/templates' },
-    { id: 4, text: tAct('sharedAppleWallet'), time: tAct('hoursAgo', { count: 3 }), type: "share", href: '/templates' },
+    { id: 1, text: tAct('updateCard'), time: tAct('minsAgo', { count: 2 }), type: 'update', href: '/templates' },
+    { id: 2, text: tAct('newLead'), time: tAct('minsAgo', { count: 15 }), type: 'lead', href: null },
+    { id: 3, text: tAct('marketingRequest'), time: tAct('hourAgo', { count: 1 }), type: 'request', href: '/templates' },
+    { id: 4, text: tAct('sharedAppleWallet'), time: tAct('hoursAgo', { count: 3 }), type: 'share', href: '/templates' },
   ];
 
   return (

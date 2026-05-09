@@ -1,81 +1,104 @@
 "use client";
-import { useState } from 'react';
+
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'react-hot-toast';
-import { useDemoStore } from '@/components/DemoStoreProvider';
-import { EmployeesHeader, EmployeesFilters, EmployeesTable, EmployeesPagination, DeleteEmployeeDialog, AddEmployeeDialog, EditEmployeeDialog } from '@/components/features/employees/EmployeesSections';
-
-const ITEMS_PER_PAGE = 5;
+import {
+  EmployeesHeader,
+  EmployeesFilters,
+  EmployeesTable,
+  DeleteEmployeeDialog,
+  EmployeeFormDialog,
+} from '@/components/features/employees/EmployeesSections';
+import {
+  useEmployees,
+  useCreateEmployee,
+  useUpdateEmployee,
+  useDeleteEmployee,
+  useCompanies,
+  useBranches,
+  useDepartments,
+} from '@/shared/api/hooks';
+import { getApiErrorMessage } from '@/shared/api/axios.instance';
+import Pagination from '@/components/ui/Pagination';
 
 export default function EmployeesPage() {
   const t = useTranslations('Employees');
-  const { employees, addEmployee, updateEmployee, removeEmployee } = useDemoStore();
+  const tCommon = useTranslations('Common');
 
+  const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('all');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [companyId, setCompanyId] = useState('');
+  const [branchId, setBranchId] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
-  const [editEmployee, setEditEmployee] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
-  // Filtration
-  const filteredEmployees = employees.filter((emp) => {
-    const matchesSearch = emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      emp.jobTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesDept = departmentFilter === 'all' || emp.department === departmentFilter;
-    const matchesRole = roleFilter === 'all' || emp.role === roleFilter;
-    return matchesSearch && matchesDept && matchesRole;
-  });
+  useEffect(() => {
+    setPage(1);
+  }, [companyId, branchId]);
 
-  const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
-  const paginatedEmployees = filteredEmployees.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
-  const departments = ['all', 'management', 'sales', 'marketing', 'hr', 'it'];
-  const roles = ['all', 'admin', 'manager', 'employee'];
-
-  const handleDelete = (id) => {
-    removeEmployee(id);
-    setShowDeleteConfirm(null);
-    setOpenMenuId(null);
-    toast.success(t('deleteSuccess'));
+  const queryParams = {
+    page,
+    ...(companyId ? { company_id: companyId } : {}),
+    ...(branchId ? { branch_id: branchId } : {}),
   };
 
-  const handleEdit = (emp) => {
-    setEditEmployee({ ...emp });
-    setShowEditModal(true);
-    setOpenMenuId(null);
+  const { data, isLoading, isError, error, refetch } = useEmployees(queryParams);
+  const { data: companiesData } = useCompanies({ per_page: 100 });
+  const { data: branchesData } = useBranches({ per_page: 200 });
+  const { data: departmentsData } = useDepartments({ per_page: 200 });
+
+  const createMutation = useCreateEmployee();
+  const updateMutation = useUpdateEmployee();
+  const deleteMutation = useDeleteEmployee();
+
+  const companies = Array.isArray(companiesData?.data) ? companiesData.data : [];
+  const branches = Array.isArray(branchesData?.data) ? branchesData.data : [];
+  const departments = Array.isArray(departmentsData?.data) ? departmentsData.data : [];
+
+  const filteredEmployees = useMemo(() => {
+    const allEmployees = Array.isArray(data?.data) ? data.data : [];
+    if (!searchQuery) return allEmployees;
+    const q = searchQuery.toLowerCase();
+    return allEmployees.filter((emp) => (
+      emp.name?.toLowerCase().includes(q) ||
+      emp.email?.toLowerCase().includes(q) ||
+      emp.employee_number?.toLowerCase().includes(q)
+    ));
+  }, [data, searchQuery]);
+
+  const meta = data
+    ? { current_page: data.current_page, last_page: data.last_page, from: data.from, to: data.to, total: data.total }
+    : null;
+
+  const handleSubmit = async (payload) => {
+    try {
+      if (editTarget?.id) {
+        await updateMutation.mutateAsync({ id: editTarget.id, payload });
+        toast.success(t('updateSuccess'));
+      } else {
+        await createMutation.mutateAsync(payload);
+        toast.success(t('createSuccess'));
+      }
+      setShowForm(false);
+      setEditTarget(null);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    }
   };
 
-  const handleSaveEdit = () => {
-    updateEmployee(editEmployee.id, editEmployee);
-    setShowEditModal(false);
-    toast.success(t('editSuccess'));
-  };
-
-  const handleAdd = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const name = formData.get('name');
-    const newEmp = {
-      id: Date.now(),
-      name,
-      email: formData.get('email'),
-      avatar: name.split(' ').map(n => n[0]).join('').toUpperCase(),
-      jobTitle: formData.get('jobTitle'),
-      department: formData.get('department'),
-      role: formData.get('role') || 'employee',
-      cardStatus: 'pending',
-    };
-    addEmployee(newEmp);
-    setShowAddModal(false);
-    toast.success(t('addSuccess'));
+  const handleDelete = async () => {
+    if (!deleteTarget?.id) return;
+    try {
+      await deleteMutation.mutateAsync(deleteTarget.id);
+      toast.success(t('deleteSuccess'));
+      setDeleteTarget(null);
+      setOpenMenuId(null);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    }
   };
 
   return (
@@ -84,45 +107,63 @@ export default function EmployeesPage() {
         t={t}
         onSendInvitations={() => toast.success(t('invitationsSent'))}
         onBulkUpload={() => toast(t('bulkUploadHint'))}
-        onAddEmployee={() => setShowAddModal(true)}
+        onAddEmployee={() => { setEditTarget(null); setShowForm(true); }}
       />
 
       <EmployeesFilters
         t={t}
         searchQuery={searchQuery}
-        setSearchQuery={(value) => { setSearchQuery(value); setCurrentPage(1); }}
-        departmentFilter={departmentFilter}
-        setDepartmentFilter={(value) => { setDepartmentFilter(value); setCurrentPage(1); }}
-        roleFilter={roleFilter}
-        setRoleFilter={(value) => { setRoleFilter(value); setCurrentPage(1); }}
-        departments={departments}
-        roles={roles}
+        setSearchQuery={setSearchQuery}
+        companyId={companyId}
+        setCompanyId={setCompanyId}
+        branchId={branchId}
+        setBranchId={setBranchId}
+        companies={companies}
+        branches={branches}
       />
 
-      <EmployeesTable
+      {isLoading && <div className="entity-loading glass-panel">{tCommon('loading')}</div>}
+
+      {isError && (
+        <div className="entity-error glass-panel">
+          {getApiErrorMessage(error)}
+          <div style={{ marginTop: 12 }}>
+            <button className="btn-outline" onClick={() => refetch()}>{tCommon('retry')}</button>
+          </div>
+        </div>
+      )}
+
+      {!isLoading && !isError && (
+        <EmployeesTable
+          t={t}
+          employees={filteredEmployees}
+          openMenuId={openMenuId}
+          setOpenMenuId={setOpenMenuId}
+          onEdit={(emp) => { setEditTarget(emp); setShowForm(true); setOpenMenuId(null); }}
+          onDelete={(emp) => { setDeleteTarget(emp); setOpenMenuId(null); }}
+        />
+      )}
+
+      <Pagination meta={meta} onPageChange={setPage} />
+
+      <DeleteEmployeeDialog
         t={t}
-        employees={paginatedEmployees}
-        openMenuId={openMenuId}
-        setOpenMenuId={setOpenMenuId}
-        onEdit={handleEdit}
-        onDelete={(id) => { setShowDeleteConfirm(id); setOpenMenuId(null); }}
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        isPending={deleteMutation.isPending}
       />
 
-      <EmployeesPagination t={t} totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPage} filteredEmployeesLength={filteredEmployees.length} itemsPerPage={ITEMS_PER_PAGE} />
-
-      <DeleteEmployeeDialog t={t} isOpen={Boolean(showDeleteConfirm)} onClose={() => setShowDeleteConfirm(null)} onConfirm={() => handleDelete(showDeleteConfirm)} />
-
-      <AddEmployeeDialog t={t} isOpen={showAddModal} onClose={() => setShowAddModal(false)} onSubmit={handleAdd} departments={departments} roles={roles} />
-
-      <EditEmployeeDialog
+      <EmployeeFormDialog
         t={t}
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        employee={editEmployee}
-        onChange={setEditEmployee}
-        onSave={handleSaveEdit}
+        isOpen={showForm}
+        onClose={() => { setShowForm(false); setEditTarget(null); }}
+        initial={editTarget}
+        companies={companies}
+        branches={branches}
         departments={departments}
-        roles={roles}
+        onSubmit={handleSubmit}
+        isPending={createMutation.isPending || updateMutation.isPending}
       />
     </div>
   );

@@ -1,117 +1,140 @@
-import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
-// Define expected response structure for errors
-interface ErrorResponse {
-  message: string;
+interface LaravelErrorEnvelope {
+  success?: boolean;
+  message?: string;
+  errors?: Record<string, string[]>;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.mhaware-id.com/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://idplus.cfd/ID-platform/api/v1';
+
+export const ACCESS_TOKEN_KEY = 'idplus_token';
+export const USER_KEY = 'idplus_user';
+export const PERMISSIONS_KEY = 'idplus_permissions';
+export const ROLES_KEY = 'idplus_roles';
 
 export const axiosInstance = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
+    Accept: 'application/json',
     'Content-Type': 'application/json',
   },
 });
 
-// Flag to prevent multiple concurrent refresh requests
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value?: unknown) => void;
-  reject: (reason?: any) => void;
-}> = [];
-
-const processQueue = (error: AxiosError | null, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
-
-// Request Interceptor: Attach Token
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // NOTE: In Next.js, reading cookies on the client or server differs. 
-    // Assuming client-side local storage or a universal cookie approach here.
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      const lang = localStorage.getItem('idplus_lang');
+      if (lang) {
+        config.headers['Accept-Language'] = lang;
+      } else {
+        const fromHtml = typeof document !== 'undefined' ? document.documentElement.lang : null;
+        config.headers['Accept-Language'] = fromHtml || 'en';
+      }
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Handle Global Errors & Token Refresh
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
-  async (error: AxiosError<ErrorResponse>) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+  (error: AxiosError<LaravelErrorEnvelope>) => {
+    const status = error.response?.status;
 
-    // Handle 401 Unauthorized
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        // If already refreshing, queue the failed requests
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            return axiosInstance(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
-        if (!refreshToken) throw new Error('No refresh token available');
-
-        // Request a new access token
-        const { data } = await axios.post(`${API_URL}/auth/refresh`, { refresh_token: refreshToken });
-        
-        const newAccessToken = data.accessToken;
-        
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('accessToken', newAccessToken);
-          // Update refresh token if rotated
-          if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
-        }
-
-        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        }
-
-        processQueue(null, newAccessToken);
-        return axiosInstance(originalRequest);
-        
-      } catch (refreshError) {
-        processQueue(refreshError as AxiosError, null);
-        
-        // Force logout redirect
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          window.location.href = '/login'; // Or use Next.js router integration
-        }
-        
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
+    if (status === 401 && typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (!path.includes('/login')) {
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(PERMISSIONS_KEY);
+        localStorage.removeItem(ROLES_KEY);
+        const locale = path.startsWith('/ar') ? '/ar' : path.startsWith('/en') ? '/en' : '';
+        window.location.href = `${locale}/login`;
       }
     }
 
     return Promise.reject(error);
   }
 );
+
+export function unwrap<T>(res: AxiosResponse<{ success: boolean; message?: string; data: T }>): T {
+  return res.data.data;
+}
+
+interface PaginatedResponse<T> {
+  data: T[];
+  current_page?: number;
+  last_page?: number;
+  per_page?: number;
+  total?: number;
+  from?: number;
+  to?: number;
+  next_page_url?: string | null;
+  prev_page_url?: string | null;
+}
+
+export function normalizePaginated<T>(res: AxiosResponse): PaginatedResponse<T> {
+  const body = res.data;
+
+  if (body && typeof body === 'object' && 'success' in body && 'data' in body) {
+    const inner = (body as { data: unknown }).data;
+    if (inner && typeof inner === 'object' && 'data' in inner && Array.isArray((inner as { data: unknown[] }).data)) {
+      return inner as PaginatedResponse<T>;
+    }
+    if (Array.isArray(inner)) {
+      const arr = inner as T[];
+      return {
+        data: arr,
+        current_page: 1,
+        last_page: 1,
+        per_page: arr.length || 10,
+        total: arr.length,
+        from: arr.length ? 1 : 0,
+        to: arr.length,
+      };
+    }
+  }
+
+  if (body && typeof body === 'object' && Array.isArray((body as { data: unknown }).data)) {
+    return body as PaginatedResponse<T>;
+  }
+
+  if (Array.isArray(body)) {
+    const arr = body as T[];
+    return {
+      data: arr,
+      current_page: 1,
+      last_page: 1,
+      per_page: arr.length || 10,
+      total: arr.length,
+      from: arr.length ? 1 : 0,
+      to: arr.length,
+    };
+  }
+
+  return { data: [], current_page: 1, last_page: 1, per_page: 10, total: 0, from: 0, to: 0 };
+}
+
+export function getApiErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as LaravelErrorEnvelope | undefined;
+    if (data?.errors) {
+      const firstField = Object.values(data.errors)[0];
+      if (Array.isArray(firstField) && firstField[0]) return firstField[0];
+    }
+    if (data?.message) return data.message;
+    return error.message;
+  }
+  if (error instanceof Error) return error.message;
+  return 'An unexpected error occurred';
+}
