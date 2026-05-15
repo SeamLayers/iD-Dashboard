@@ -13,6 +13,8 @@ import {
   Settings,
   CheckSquare,
   UserCog,
+  Palette,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '@/shared/auth/AuthProvider';
 
@@ -76,6 +78,24 @@ export default function Sidebar() {
       icon: <UserCog size={20} />,
     },
     { name: t('approvals'), path: '/approvals', icon: <CheckSquare size={20} /> },
+    {
+      name: t('businessCards'),
+      path: '/business-cards',
+      icon: <CreditCard size={20} />,
+      anyOf: ['business_card.view'],
+    },
+    {
+      name: t('businessCardTemplates'),
+      path: '/business-card-templates',
+      icon: <Palette size={20} />,
+      anyOf: ['business_card_template.view'],
+    },
+    {
+      name: t('roles'),
+      path: '/roles',
+      icon: <ShieldCheck size={20} />,
+      anyOf: ['role.view'],
+    },
     { name: t('templates'), path: '/templates', icon: <CreditCard size={20} /> },
     { name: t('settings'), path: '/settings', icon: <Settings size={20} /> },
   ].filter(Boolean);

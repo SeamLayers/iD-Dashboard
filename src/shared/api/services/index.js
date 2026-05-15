@@ -7,3 +7,6 @@ export { projectsService } from './projects.service';
 export { employeeProjectsService } from './employee-projects.service';
 export { notificationsService } from './notifications.service';
 export { publicService } from './public.service';
+export { businessCardsService } from './business-cards.service';
+export { businessCardTemplatesService } from './business-card-templates.service';
+export { rolesService } from './roles.service';

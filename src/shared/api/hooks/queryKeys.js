@@ -37,4 +37,20 @@ export const queryKeys = {
     all: ['notifications'],
     list: ['notifications', 'list'],
   },
+  businessCards: {
+    all: ['business-cards'],
+    list: (params) => ['business-cards', 'list', params],
+    detail: (id) => ['business-cards', 'detail', id],
+    analytics: (id) => ['business-cards', 'analytics', id],
+  },
+  businessCardTemplates: {
+    all: ['business-card-templates'],
+    list: (params) => ['business-card-templates', 'list', params],
+    detail: (id) => ['business-card-templates', 'detail', id],
+  },
+  roles: {
+    all: ['roles'],
+    list: (params) => ['roles', 'list', params],
+    detail: (id) => ['roles', 'detail', id],
+  },
 };
