@@ -9,8 +9,9 @@ import {
   useCreateDepartment,
   useUpdateDepartment,
   useDeleteDepartment,
-  useCompanies,
+  useCompaniesForCurrentUser,
 } from '@/shared/api/hooks';
+import { useAuth } from '@/shared/auth/AuthProvider';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 import {
@@ -47,8 +48,11 @@ export default function DepartmentsPage() {
     ...(companyId ? { company_id: companyId } : {}),
   };
 
+  const { hasRole } = useAuth();
+  const isOwner = hasRole('owner') && !hasRole('superadmin');
+
   const { data, isLoading, isError, error, refetch } = useDepartments(queryParams);
-  const { data: companiesData } = useCompanies({ per_page: 100 });
+  const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });
   const createMutation = useCreateDepartment();
   const updateMutation = useUpdateDepartment();
   const deleteMutation = useDeleteDepartment();
@@ -108,6 +112,7 @@ export default function DepartmentsPage() {
         companyId={companyId}
         setCompanyId={setCompanyId}
         companies={companies}
+        showCompanyFilter={!isOwner}
       />
 
       {isLoading && <div className="entity-loading glass-panel">{tCommon('loading')}</div>}

@@ -15,10 +15,11 @@ import {
   useCreateEmployee,
   useUpdateEmployee,
   useDeleteEmployee,
-  useCompanies,
+  useCompaniesForCurrentUser,
   useBranches,
   useDepartments,
 } from '@/shared/api/hooks';
+import { useAuth } from '@/shared/auth/AuthProvider';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 
@@ -45,8 +46,11 @@ export default function EmployeesPage() {
     ...(branchId ? { branch_id: branchId } : {}),
   };
 
+  const { hasRole } = useAuth();
+  const isOwner = hasRole('owner') && !hasRole('superadmin');
+
   const { data, isLoading, isError, error, refetch } = useEmployees(queryParams);
-  const { data: companiesData } = useCompanies({ per_page: 100 });
+  const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });
   const { data: branchesData } = useBranches({ per_page: 200 });
   const { data: departmentsData } = useDepartments({ per_page: 200 });
 
@@ -120,6 +124,7 @@ export default function EmployeesPage() {
         setBranchId={setBranchId}
         companies={companies}
         branches={branches}
+        showCompanyFilter={!isOwner}
       />
 
       {isLoading && <div className="entity-loading glass-panel">{tCommon('loading')}</div>}

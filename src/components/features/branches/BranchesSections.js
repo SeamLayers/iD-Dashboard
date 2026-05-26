@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { MapPin, Pencil, Trash2, X, Plus, Check, Building2 } from 'lucide-react';
+import { MapPin, Pencil, Trash2, X, Plus, Check, Building2, Loader2 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
 
 export function BranchCard({ t, branch, onEdit, onDelete }) {
@@ -47,10 +47,15 @@ export function BranchFormDialog({ t, isOpen, onClose, initial, companies = [], 
 
   useEffect(() => {
     if (!isOpen) return;
-    setCompanyId(initial?.company_id ? String(initial.company_id) : '');
+    // Owners (and anyone scoped to one company) get the company auto-picked so
+    // the required <select> isn't left empty.
+    const initialCompanyId = initial?.company_id ? String(initial.company_id) : '';
+    setCompanyId(
+      initialCompanyId || (companies.length === 1 ? String(companies[0].id) : '')
+    );
     setName(initial?.name || '');
     setAddress(initial?.address || '');
-  }, [isOpen, initial]);
+  }, [isOpen, initial, companies]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -68,15 +73,17 @@ export function BranchFormDialog({ t, isOpen, onClose, initial, companies = [], 
         <button className="modal-close" onClick={onClose} type="button"><X size={18} /></button>
       </div>
       <form onSubmit={handleSubmit}>
-        <div className="modal-field">
-          <label>{t('company')}</label>
-          <select className="modal-input" required value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
-            <option value="">{t('filterByCompany')}</option>
-            {companies.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </div>
+        {companies.length > 1 && (
+          <div className="modal-field">
+            <label>{t('company')}</label>
+            <select className="modal-input" required value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
+              <option value="">{t('filterByCompany')}</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="modal-field">
           <label>{t('name')}</label>
           <input className="modal-input" required value={name} onChange={(e) => setName(e.target.value)} />
@@ -88,8 +95,20 @@ export function BranchFormDialog({ t, isOpen, onClose, initial, companies = [], 
         <div className="modal-actions">
           <button type="button" className="btn-outline" onClick={onClose}>{tCommon('cancel')}</button>
           <button type="submit" className="btn-primary" disabled={isPending}>
-            {isEdit ? <Check size={14} /> : <Plus size={14} />}
-            <span>{isEdit ? t('editBranch') : t('addBranch')}</span>
+            {isPending ? (
+              <Loader2 size={14} className="spinner" />
+            ) : isEdit ? (
+              <Check size={14} />
+            ) : (
+              <Plus size={14} />
+            )}
+            <span>
+              {isPending
+                ? tCommon('saving')
+                : isEdit
+                ? t('editBranch')
+                : t('addBranch')}
+            </span>
           </button>
         </div>
       </form>

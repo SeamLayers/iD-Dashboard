@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Folder, Calendar, Pencil, Trash2, X, Plus, Check, Search, Users } from 'lucide-react';
+import { Folder, Calendar, Pencil, Trash2, X, Plus, Check, Search, Users, Loader2 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
 
 function formatDate(value) {
@@ -14,7 +14,7 @@ function formatDate(value) {
   }
 }
 
-export function ProjectsFilters({ t, search, setSearch, companyId, setCompanyId, companies }) {
+export function ProjectsFilters({ t, search, setSearch, companyId, setCompanyId, companies, showCompanyFilter = true }) {
   return (
     <div className="emp-filters">
       <div className="emp-search">
@@ -30,10 +30,12 @@ export function ProjectsFilters({ t, search, setSearch, companyId, setCompanyId,
           <button className="emp-search-clear" onClick={() => setSearch('')}><X size={14} /></button>
         )}
       </div>
-      <select className="emp-select" value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
-        <option value="">{t('filterByCompany')}</option>
-        {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-      </select>
+      {showCompanyFilter && (
+        <select className="emp-select" value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
+          <option value="">{t('filterByCompany')}</option>
+          {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+      )}
     </div>
   );
 }
@@ -88,13 +90,16 @@ export function ProjectFormDialog({ t, isOpen, onClose, initial, companies, empl
 
   useEffect(() => {
     if (!isOpen) return;
-    setCompanyId(initial?.company_id ? String(initial.company_id) : '');
+    const initialCompanyId = initial?.company_id ? String(initial.company_id) : '';
+    setCompanyId(
+      initialCompanyId || (companies.length === 1 ? String(companies[0].id) : '')
+    );
     setName(initial?.name || '');
     setStartDate(initial?.start_date ? initial.start_date.slice(0, 10) : '');
     setEndDate(initial?.end_date ? initial.end_date.slice(0, 10) : '');
     setSelectedEmployees(new Set((initial?.employees || []).map((e) => e.id)));
     setEmpSearch('');
-  }, [isOpen, initial]);
+  }, [isOpen, initial, companies]);
 
   const filteredEmployees = (() => {
     let list = companyId
@@ -138,13 +143,15 @@ export function ProjectFormDialog({ t, isOpen, onClose, initial, companies, empl
         <button className="modal-close" onClick={onClose} type="button"><X size={18} /></button>
       </div>
       <form onSubmit={handleSubmit}>
-        <div className="modal-field">
-          <label>{t('company')}</label>
-          <select className="modal-input" required value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
-            <option value="">{t('filterByCompany')}</option>
-            {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
+        {companies.length > 1 && (
+          <div className="modal-field">
+            <label>{t('company')}</label>
+            <select className="modal-input" required value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
+              <option value="">{t('filterByCompany')}</option>
+              {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        )}
         <div className="modal-field">
           <label>{t('name')}</label>
           <input className="modal-input" required value={name} onChange={(e) => setName(e.target.value)} />
@@ -191,8 +198,20 @@ export function ProjectFormDialog({ t, isOpen, onClose, initial, companies, empl
         <div className="modal-actions">
           <button type="button" className="btn-outline" onClick={onClose}>{tCommon('cancel')}</button>
           <button type="submit" className="btn-primary" disabled={isPending}>
-            {isEdit ? <Check size={14} /> : <Plus size={14} />}
-            <span>{isEdit ? t('editProject') : t('addProject')}</span>
+            {isPending ? (
+              <Loader2 size={14} className="spinner" />
+            ) : isEdit ? (
+              <Check size={14} />
+            ) : (
+              <Plus size={14} />
+            )}
+            <span>
+              {isPending
+                ? tCommon('saving')
+                : isEdit
+                ? t('editProject')
+                : t('addProject')}
+            </span>
           </button>
         </div>
       </form>

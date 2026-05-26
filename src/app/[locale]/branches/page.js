@@ -9,7 +9,7 @@ import {
   useCreateBranch,
   useUpdateBranch,
   useDeleteBranch,
-  useCompanies,
+  useCompaniesForCurrentUser,
 } from '@/shared/api/hooks';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
@@ -29,7 +29,7 @@ export default function BranchesPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const { data, isLoading, isError, error, refetch } = useBranches({ page });
-  const { data: companiesData } = useCompanies({ per_page: 100 });
+  const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });
   const createMutation = useCreateBranch();
   const updateMutation = useUpdateBranch();
   const deleteMutation = useDeleteBranch();

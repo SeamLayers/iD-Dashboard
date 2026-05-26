@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Building2, Mail, Phone, Pencil, Trash2, Upload, X, Plus, Check } from 'lucide-react';
+import { Building2, Mail, Phone, Pencil, Trash2, Upload, X, Plus, Check, Loader2 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
 
 function getInitials(name = '') {
@@ -159,10 +159,22 @@ export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPen
           )}
         </div>
         <div className="modal-actions">
-          <button type="button" className="btn-outline" onClick={onClose}>{tCommon('cancel')}</button>
+          <button type="button" className="btn-outline" onClick={onClose} disabled={isPending}>{tCommon('cancel')}</button>
           <button type="submit" className="btn-primary" disabled={isPending}>
-            {isEdit ? <Check size={14} /> : <Plus size={14} />}
-            <span>{isEdit ? t('editCompany') : t('addCompany')}</span>
+            {isPending ? (
+              <Loader2 size={14} className="spinner" />
+            ) : isEdit ? (
+              <Check size={14} />
+            ) : (
+              <Plus size={14} />
+            )}
+            <span>
+              {isPending
+                ? tCommon('saving')
+                : isEdit
+                ? t('editCompany')
+                : t('addCompany')}
+            </span>
           </button>
         </div>
       </form>

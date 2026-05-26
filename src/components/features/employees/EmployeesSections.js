@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
-  Plus, Upload, Search, MoreVertical, Edit2, Trash2, X, Check, Mail, Phone, Hash,
+  Plus, Upload, Search, MoreVertical, Edit2, Trash2, X, Check, Mail, Phone, Hash, Loader2,
 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
 
@@ -56,6 +56,7 @@ export function EmployeesFilters({
   setBranchId,
   companies,
   branches,
+  showCompanyFilter = true,
 }) {
   return (
     <div className="emp-filters">
@@ -74,16 +75,18 @@ export function EmployeesFilters({
           </button>
         )}
       </div>
-      <select
-        value={companyId}
-        onChange={(e) => setCompanyId(e.target.value)}
-        className="emp-select"
-      >
-        <option value="">{t('filterByCompany')}</option>
-        {companies.map((c) => (
-          <option key={c.id} value={c.id}>{c.name}</option>
-        ))}
-      </select>
+      {showCompanyFilter && (
+        <select
+          value={companyId}
+          onChange={(e) => setCompanyId(e.target.value)}
+          className="emp-select"
+        >
+          <option value="">{t('filterByCompany')}</option>
+          {companies.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+      )}
       <select
         value={branchId}
         onChange={(e) => setBranchId(e.target.value)}
@@ -214,7 +217,17 @@ export function EmployeeFormDialog({
 
   useEffect(() => {
     if (!isOpen) return;
-    setCompanyId(initial?.company_id ? String(initial.company_id) : initial?.company?.id ? String(initial.company.id) : '');
+    const initialCompanyId = initial?.company_id
+      ? String(initial.company_id)
+      : initial?.company?.id
+      ? String(initial.company.id)
+      : '';
+    // For owners (and any user who scopes to a single company) pre-pick it so
+    // they aren't blocked by the native "please select an item in the list"
+    // validation on the required <select>.
+    setCompanyId(
+      initialCompanyId || (companies.length === 1 ? String(companies[0].id) : '')
+    );
     setBranchId(initial?.branch_id ? String(initial.branch_id) : initial?.branch?.id ? String(initial.branch.id) : '');
     setDepartmentId(initial?.department_id ? String(initial.department_id) : initial?.department?.id ? String(initial.department.id) : '');
     setUserId(initial?.user_id ? String(initial.user_id) : initial?.user?.id ? String(initial.user.id) : '');
@@ -226,7 +239,7 @@ export function EmployeeFormDialog({
     setStatus(initial?.status || 'active');
     setLogo(null);
     setLogoPreview(initial?.logo || null);
-  }, [isOpen, initial]);
+  }, [isOpen, initial, companies]);
 
   const filteredBranches = companyId
     ? branches.filter((b) => String(b.company_id) === String(companyId))
@@ -269,13 +282,15 @@ export function EmployeeFormDialog({
         <button className="modal-close" onClick={onClose} type="button"><X size={18} /></button>
       </div>
       <form onSubmit={handleSubmit}>
-        <div className="modal-field">
-          <label>{t('company')}</label>
-          <select className="modal-input" required value={companyId} onChange={(e) => { setCompanyId(e.target.value); setBranchId(''); setDepartmentId(''); }}>
-            <option value="">{t('filterByCompany')}</option>
-            {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
+        {companies.length > 1 && (
+          <div className="modal-field">
+            <label>{t('company')}</label>
+            <select className="modal-input" required value={companyId} onChange={(e) => { setCompanyId(e.target.value); setBranchId(''); setDepartmentId(''); }}>
+              <option value="">{t('filterByCompany')}</option>
+              {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        )}
         <div className="modal-field">
           <label>{t('branch')}</label>
           <select className="modal-input" required value={branchId} onChange={(e) => setBranchId(e.target.value)}>
@@ -341,8 +356,20 @@ export function EmployeeFormDialog({
         <div className="modal-actions">
           <button type="button" className="btn-outline" onClick={onClose}>{tCommon('cancel')}</button>
           <button type="submit" className="btn-primary" disabled={isPending}>
-            {isEdit ? <Check size={14} /> : <Plus size={14} />}
-            <span>{isEdit ? t('saveChanges') : t('addEmployee')}</span>
+            {isPending ? (
+              <Loader2 size={14} className="spinner" />
+            ) : isEdit ? (
+              <Check size={14} />
+            ) : (
+              <Plus size={14} />
+            )}
+            <span>
+              {isPending
+                ? tCommon('saving')
+                : isEdit
+                ? t('saveChanges')
+                : t('addEmployee')}
+            </span>
           </button>
         </div>
       </form>

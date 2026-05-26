@@ -9,9 +9,10 @@ import {
   useCreateProject,
   useUpdateProject,
   useDeleteProject,
-  useCompanies,
+  useCompaniesForCurrentUser,
   useEmployees,
 } from '@/shared/api/hooks';
+import { useAuth } from '@/shared/auth/AuthProvider';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 import {
@@ -48,8 +49,11 @@ export default function ProjectsPage() {
     ...(companyId ? { company_id: companyId } : {}),
   };
 
+  const { hasRole } = useAuth();
+  const isOwner = hasRole('owner') && !hasRole('superadmin');
+
   const { data, isLoading, isError, error, refetch } = useProjects(queryParams);
-  const { data: companiesData } = useCompanies({ per_page: 100 });
+  const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });
   const { data: employeesData } = useEmployees({ per_page: 200 });
 
   const createMutation = useCreateProject();
@@ -112,6 +116,7 @@ export default function ProjectsPage() {
         companyId={companyId}
         setCompanyId={setCompanyId}
         companies={companies}
+        showCompanyFilter={!isOwner}
       />
 
       {isLoading && <div className="entity-loading glass-panel">{tCommon('loading')}</div>}
