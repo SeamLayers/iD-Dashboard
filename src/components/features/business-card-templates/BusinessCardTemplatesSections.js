@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Palette, Pencil, Trash2, X, Plus, Check } from 'lucide-react';
+import { Palette, Pencil, Trash2, X, Plus, Check, Loader2 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
 
 function safeStringify(value) {
@@ -62,12 +62,19 @@ export function BusinessCardTemplateFormDialog({ t, isOpen, onClose, initial, co
 
   useEffect(() => {
     if (!isOpen) return;
-    setCompanyId(initial?.company_id ? String(initial.company_id) : initial?.company?.id ? String(initial.company.id) : '');
+    const initialCompanyId = initial?.company_id
+      ? String(initial.company_id)
+      : initial?.company?.id
+      ? String(initial.company.id)
+      : '';
+    setCompanyId(
+      initialCompanyId || (companies.length === 1 ? String(companies[0].id) : '')
+    );
     setName(initial?.name || '');
     setIsDefault(Boolean(initial?.is_default));
     setDesignJson(safeStringify(initial?.design_json));
     setJsonError(null);
-  }, [isOpen, initial]);
+  }, [isOpen, initial, companies]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -98,13 +105,15 @@ export function BusinessCardTemplateFormDialog({ t, isOpen, onClose, initial, co
         <button className="modal-close" onClick={onClose} type="button"><X size={18} /></button>
       </div>
       <form onSubmit={handleSubmit}>
-        <div className="modal-field">
-          <label>{t('company')}</label>
-          <select className="modal-input" required value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
-            <option value="">{t('filterByCompany')}</option>
-            {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
+        {companies.length > 1 && (
+          <div className="modal-field">
+            <label>{t('company')}</label>
+            <select className="modal-input" required value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
+              <option value="">{t('filterByCompany')}</option>
+              {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        )}
         <div className="modal-field">
           <label>{t('name')}</label>
           <input className="modal-input" required value={name} onChange={(e) => setName(e.target.value)} />
@@ -129,10 +138,22 @@ export function BusinessCardTemplateFormDialog({ t, isOpen, onClose, initial, co
           </label>
         </div>
         <div className="modal-actions">
-          <button type="button" className="btn-outline" onClick={onClose}>{tCommon('cancel')}</button>
+          <button type="button" className="btn-outline" onClick={onClose} disabled={isPending}>{tCommon('cancel')}</button>
           <button type="submit" className="btn-primary" disabled={isPending}>
-            {isEdit ? <Check size={14} /> : <Plus size={14} />}
-            <span>{isEdit ? t('editTemplate') : t('addTemplate')}</span>
+            {isPending ? (
+              <Loader2 size={14} className="spinner" />
+            ) : isEdit ? (
+              <Check size={14} />
+            ) : (
+              <Plus size={14} />
+            )}
+            <span>
+              {isPending
+                ? tCommon('saving')
+                : isEdit
+                ? t('editTemplate')
+                : t('addTemplate')}
+            </span>
           </button>
         </div>
       </form>

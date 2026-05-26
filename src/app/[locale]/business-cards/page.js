@@ -12,10 +12,11 @@ import {
   useSubmitBusinessCard,
   usePublishBusinessCard,
   useDeactivateBusinessCard,
-  useCompanies,
+  useCompaniesForCurrentUser,
   useEmployees,
   useBusinessCardTemplates,
 } from '@/shared/api/hooks';
+import { useAuth } from '@/shared/auth/AuthProvider';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 import {
@@ -49,8 +50,11 @@ export default function BusinessCardsPage() {
     ...(companyId ? { company_id: companyId } : {}),
   };
 
+  const { hasRole } = useAuth();
+  const isOwner = hasRole('owner') && !hasRole('superadmin');
+
   const { data, isLoading, isError, error, refetch } = useBusinessCards(queryParams);
-  const { data: companiesData } = useCompanies({ per_page: 100 });
+  const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });
   const { data: employeesData } = useEmployees({ per_page: 200, ...(companyId ? { company_id: companyId } : {}) });
   const { data: templatesData } = useBusinessCardTemplates({ per_page: 100, ...(companyId ? { company_id: companyId } : {}) });
 
@@ -145,10 +149,12 @@ export default function BusinessCardsPage() {
       </div>
 
       <div className="page-filters">
-        <select value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
-          <option value="">{t('filterByCompany')}</option>
-          {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        {!isOwner && (
+          <select value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
+            <option value="">{t('filterByCompany')}</option>
+            {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        )}
         <div className="status-toggles">
           <button
             type="button"

@@ -9,8 +9,9 @@ import {
   useCreateBusinessCardTemplate,
   useUpdateBusinessCardTemplate,
   useDeleteBusinessCardTemplate,
-  useCompanies,
+  useCompaniesForCurrentUser,
 } from '@/shared/api/hooks';
+import { useAuth } from '@/shared/auth/AuthProvider';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 import {
@@ -38,8 +39,11 @@ export default function BusinessCardTemplatesPage() {
     ...(companyId ? { company_id: companyId } : {}),
   };
 
+  const { hasRole } = useAuth();
+  const isOwner = hasRole('owner') && !hasRole('superadmin');
+
   const { data, isLoading, isError, error, refetch } = useBusinessCardTemplates(queryParams);
-  const { data: companiesData } = useCompanies({ per_page: 100 });
+  const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });
 
   const createMutation = useCreateBusinessCardTemplate();
   const updateMutation = useUpdateBusinessCardTemplate();
@@ -93,12 +97,14 @@ export default function BusinessCardTemplatesPage() {
         </div>
       </div>
 
-      <div className="page-filters">
-        <select value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
-          <option value="">{t('filterByCompany')}</option>
-          {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-      </div>
+      {!isOwner && (
+        <div className="page-filters">
+          <select value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
+            <option value="">{t('filterByCompany')}</option>
+            {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+      )}
 
       {isLoading && <div className="entity-loading glass-panel">{tCommon('loading')}</div>}
 

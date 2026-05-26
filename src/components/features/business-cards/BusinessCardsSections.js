@@ -14,6 +14,7 @@ import {
   Calendar,
   Hash,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
 
@@ -223,9 +224,10 @@ export function BusinessCardFormDialog({
           </label>
         </div>
         <div className="modal-actions">
-          <button type="button" className="btn-outline" onClick={onClose}>{tCommon('cancel')}</button>
+          <button type="button" className="btn-outline" onClick={onClose} disabled={isPending}>{tCommon('cancel')}</button>
           <button type="submit" className="btn-primary" disabled={isPending}>
-            <span>{t('editCard')}</span>
+            {isPending && <Loader2 size={14} className="spinner" />}
+            <span>{isPending ? tCommon('saving') : t('editCard')}</span>
           </button>
         </div>
       </form>
@@ -333,17 +335,19 @@ export function IssueCardsDialog({
         <button className="modal-close" onClick={onClose} type="button"><X size={18} /></button>
       </div>
       <form onSubmit={handleSubmit}>
-        <div className="modal-field">
-          <label>{t('company')}</label>
-          <select className="modal-input" value={companyFilter} onChange={(e) => {
-            setCompanyFilter(e.target.value);
-            setSelectedEmployees([]);
-            setTemplateId('');
-          }}>
-            <option value="">{t('filterByCompany')}</option>
-            {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
+        {companies.length > 1 && (
+          <div className="modal-field">
+            <label>{t('company')}</label>
+            <select className="modal-input" value={companyFilter} onChange={(e) => {
+              setCompanyFilter(e.target.value);
+              setSelectedEmployees([]);
+              setTemplateId('');
+            }}>
+              <option value="">{t('filterByCompany')}</option>
+              {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        )}
         <div className="modal-field">
           <label>{t('employees')}</label>
           <div className="multi-select">
@@ -402,10 +406,10 @@ export function IssueCardsDialog({
           <p style={{ color: '#ef4444', fontSize: '0.82rem', marginBottom: '1rem' }}>{error}</p>
         )}
         <div className="modal-actions">
-          <button type="button" className="btn-outline" onClick={onClose}>{tCommon('cancel')}</button>
+          <button type="button" className="btn-outline" onClick={onClose} disabled={isPending}>{tCommon('cancel')}</button>
           <button type="submit" className="btn-primary" disabled={isPending}>
-            <Plus size={14} />
-            <span>{t('issueCards')}</span>
+            {isPending ? <Loader2 size={14} className="spinner" /> : <Plus size={14} />}
+            <span>{isPending ? tCommon('saving') : t('issueCards')}</span>
           </button>
         </div>
       </form>
