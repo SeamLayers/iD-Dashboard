@@ -25,7 +25,7 @@ export const useMyCompany = () => {
 /**
  * Returns the set of companies the *current user* is allowed to scope work to.
  *
- *  - superadmin → full paginated `/dashboard/companies` list.
+ *  - superadmin → full paginated `/dashboard/company` list.
  *  - owner      → their single `/dashboard/owner/company` shaped as a list-of-one
  *                 so callers can treat both cases identically.
  *  - others     → empty list (no scoping needed).
