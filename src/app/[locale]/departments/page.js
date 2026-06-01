@@ -10,6 +10,7 @@ import {
   useUpdateDepartment,
   useDeleteDepartment,
   useCompaniesForCurrentUser,
+  useBranches,
 } from '@/shared/api/hooks';
 import { useAuth } from '@/shared/auth/AuthProvider';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
@@ -53,12 +54,14 @@ export default function DepartmentsPage() {
 
   const { data, isLoading, isError, error, refetch } = useDepartments(queryParams);
   const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });
+  const { data: branchesData } = useBranches({ per_page: 200 });
   const createMutation = useCreateDepartment();
   const updateMutation = useUpdateDepartment();
   const deleteMutation = useDeleteDepartment();
 
   const items = Array.isArray(data?.data) ? data.data : [];
   const companies = Array.isArray(companiesData?.data) ? companiesData.data : [];
+  const branches = Array.isArray(branchesData?.data) ? branchesData.data : [];
   const meta = data
     ? { current_page: data.current_page, last_page: data.last_page, from: data.from, to: data.to, total: data.total }
     : null;
@@ -155,6 +158,7 @@ export default function DepartmentsPage() {
         onClose={() => { setShowForm(false); setEditTarget(null); }}
         initial={editTarget}
         companies={companies}
+        branches={branches}
         onSubmit={handleSubmit}
         isPending={createMutation.isPending || updateMutation.isPending}
       />

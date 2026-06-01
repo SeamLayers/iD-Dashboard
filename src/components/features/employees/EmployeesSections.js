@@ -265,9 +265,9 @@ export function EmployeeFormDialog({
       department_id: departmentId ? Number(departmentId) : undefined,
       user_id: Number(userId),
       employee_number: employeeNumber,
-      iqama_number: iqamaNumber || undefined,
+      iqama_number: iqamaNumber, // required (DB: UNIQUE NOT NULL)
       name,
-      email: email || undefined,
+      email, // required (DB: UNIQUE NOT NULL)
       phone: phone || undefined,
       status,
     };
@@ -316,7 +316,7 @@ export function EmployeeFormDialog({
         </div>
         <div className="modal-field">
           <label>{t('iqamaNumber')}</label>
-          <input className="modal-input" value={iqamaNumber} onChange={(e) => setIqamaNumber(e.target.value)} />
+          <input className="modal-input" required value={iqamaNumber} onChange={(e) => setIqamaNumber(e.target.value)} />
         </div>
         <div className="modal-field">
           <label>{t('name')}</label>
@@ -324,7 +324,7 @@ export function EmployeeFormDialog({
         </div>
         <div className="modal-field">
           <label><Mail size={13} style={{ display: 'inline', marginInlineEnd: 4 }} />{t('email')}</label>
-          <input className="modal-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input className="modal-input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div className="modal-field">
           <label><Phone size={13} style={{ display: 'inline', marginInlineEnd: 4 }} />{t('phone')}</label>

@@ -74,10 +74,11 @@ export function DepartmentCard({ t, department, onEdit, onDelete }) {
   );
 }
 
-export function DepartmentFormDialog({ t, isOpen, onClose, initial, companies, onSubmit, isPending }) {
+export function DepartmentFormDialog({ t, isOpen, onClose, initial, companies, branches = [], onSubmit, isPending }) {
   const tCommon = useTranslations('Common');
   const isEdit = Boolean(initial?.id);
   const [companyId, setCompanyId] = useState('');
+  const [branchId, setBranchId] = useState('');
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
 
@@ -87,14 +88,29 @@ export function DepartmentFormDialog({ t, isOpen, onClose, initial, companies, o
     setCompanyId(
       initialCompanyId || (companies.length === 1 ? String(companies[0].id) : '')
     );
+    setBranchId(initial?.branch_id ? String(initial.branch_id) : '');
     setName(initial?.name || '');
     setCode(initial?.code || '');
   }, [isOpen, initial, companies]);
+
+  // branch_id is NOT NULL in the DB, so the picker is required. Scope the
+  // options to the chosen company and auto-select when there's only one.
+  const companyBranches = companyId
+    ? branches.filter((b) => String(b.company_id) === String(companyId))
+    : branches;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (!branchId && companyBranches.length === 1) {
+      setBranchId(String(companyBranches[0].id));
+    }
+  }, [isOpen, companyId, companyBranches, branchId]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit({
       company_id: Number(companyId),
+      branch_id: Number(branchId),
       name,
       code: code || undefined,
     });
@@ -118,6 +134,25 @@ export function DepartmentFormDialog({ t, isOpen, onClose, initial, companies, o
             </select>
           </div>
         )}
+        <div className="modal-field">
+          <label>{t('branch')}</label>
+          <select
+            className="modal-input"
+            required
+            value={branchId}
+            onChange={(e) => setBranchId(e.target.value)}
+          >
+            <option value="">{t('selectBranch')}</option>
+            {companyBranches.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
+          {companyBranches.length === 0 && (
+            <small style={{ color: 'var(--accent-amber, #f59e0b)', fontSize: '0.78rem' }}>
+              {t('noBranchesHint')}
+            </small>
+          )}
+        </div>
         <div className="modal-field">
           <label>{t('name')}</label>
           <input className="modal-input" required value={name} onChange={(e) => setName(e.target.value)} />
