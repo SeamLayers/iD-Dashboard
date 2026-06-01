@@ -6,14 +6,14 @@ import { toast } from 'react-hot-toast';
 import {
   UserPlus,
   Mail,
-  Lock,
   Shield,
   User as UserIcon,
-  Eye,
-  EyeOff,
   Building2,
   Briefcase,
   ChevronDown,
+  Phone,
+  Copy,
+  Key,
 } from 'lucide-react';
 import { useRouter } from '@/i18n/routing';
 import { useAuth } from '@/shared/auth/AuthProvider';
@@ -26,6 +26,15 @@ const USER_TYPE_ICONS = {
   employee: Briefcase,
 };
 
+// The backend `out_message` is a free-form blob containing the temp password.
+// We pull it out so the admin can copy it directly. Fingerprint must stay in
+// sync with RegisteredUserController::store().
+function extractTempPassword(message) {
+  if (!message || typeof message !== 'string') return null;
+  const m = message.match(/Temporary Password:\s*(\S+)/i);
+  return m ? m[1] : null;
+}
+
 export default function RegisterPage() {
   const t = useTranslations('Register');
   const tCommon = useTranslations('Common');
@@ -35,11 +44,8 @@ export default function RegisterPage() {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [phone, setPhone] = useState('');
   const [userType, setUserType] = useState('owner');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [successInfo, setSuccessInfo] = useState(null);
 
@@ -66,15 +72,10 @@ export default function RegisterPage() {
   }
 
   const validate = () => {
-    if (password.length < 8) {
-      return t('passwordTooShort');
-    }
-    if (password !== confirmPassword) {
-      return t('passwordMismatch');
-    }
-    if (!allowedTypes.includes(userType)) {
-      return t('invalidUserType');
-    }
+    if (!name.trim()) return t('nameRequired');
+    if (!email.trim()) return t('emailRequired');
+    if (!phone.trim()) return t('phoneRequired');
+    if (!allowedTypes.includes(userType)) return t('invalidUserType');
     return null;
   };
 
@@ -94,30 +95,44 @@ export default function RegisterPage() {
       const result = await registerMutation.mutateAsync({
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        password,
-        password_confirmation: confirmPassword,
+        phone: phone.trim(),
         user_type: userType,
       });
 
+      // Response shape: { user, token, out_message } — out_message carries the
+      // temporary password for employees so the admin can hand it over.
       const newUser = result?.user || result;
+      const tempPassword = extractTempPassword(result?.out_message);
+
       toast.success(t('createSuccess'));
       setSuccessInfo({
         id: newUser?.id,
         name: newUser?.name,
         email: newUser?.email,
         user_type: newUser?.user_type,
+        phone: newUser?.phone,
+        tempPassword,
       });
 
-      // Reset form for the next entry, but keep userType so admins can
-      // batch-create same-typed users without re-selecting every time.
+      // Reset for the next entry. Keep userType so admins can batch-create
+      // same-typed users without re-selecting every time.
       setName('');
       setEmail('');
-      setPassword('');
-      setConfirmPassword('');
+      setPhone('');
     } catch (err) {
       const msg = getApiErrorMessage(err);
       setErrorMsg(msg);
       toast.error(msg);
+    }
+  };
+
+  const copyTempPassword = async () => {
+    if (!successInfo?.tempPassword) return;
+    try {
+      await navigator.clipboard.writeText(successInfo.tempPassword);
+      toast.success(t('passwordCopied'));
+    } catch {
+      toast.error(tCommon('errorOccurred'));
     }
   };
 
@@ -139,6 +154,19 @@ export default function RegisterPage() {
               {t('formTitle')}
             </h2>
             <p className="auth-subtitle">{t('formSubtitle')}</p>
+          </div>
+
+          <div className="auth-info" style={{
+            fontSize: '0.82rem',
+            color: 'var(--text-muted)',
+            background: 'rgba(102, 252, 241, 0.08)',
+            border: '1px solid rgba(102, 252, 241, 0.2)',
+            padding: '0.7rem 0.9rem',
+            borderRadius: '10px',
+            marginBottom: '1rem',
+          }}>
+            <Key size={14} style={{ display: 'inline', marginInlineEnd: 6 }} />
+            {t('passwordInfo')}
           </div>
 
           {errorMsg && <div className="auth-error">{errorMsg}</div>}
@@ -178,6 +206,24 @@ export default function RegisterPage() {
           </div>
 
           <div className="auth-field">
+            <label htmlFor="reg-phone">
+              <Phone size={14} className="field-icon" />
+              {t('phone')}
+            </label>
+            <input
+              id="reg-phone"
+              type="tel"
+              required
+              autoComplete="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="auth-input"
+              placeholder={t('phonePlaceholder')}
+              dir="ltr"
+            />
+          </div>
+
+          <div className="auth-field">
             <label htmlFor="reg-user-type">
               <Shield size={14} className="field-icon" />
               {t('userType')}
@@ -199,64 +245,6 @@ export default function RegisterPage() {
               <ChevronDown size={16} className="select-caret" />
             </div>
             <small className="field-hint">{t(`userTypeHints.${userType}`)}</small>
-          </div>
-
-          <div className="auth-field-row">
-            <div className="auth-field">
-              <label htmlFor="reg-password">
-                <Lock size={14} className="field-icon" />
-                {t('password')}
-              </label>
-              <div className="password-wrap">
-                <input
-                  id="reg-password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  minLength={8}
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="auth-input"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="password-toggle"
-                  aria-label={showPassword ? 'Hide' : 'Show'}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            <div className="auth-field">
-              <label htmlFor="reg-confirm">
-                <Lock size={14} className="field-icon" />
-                {t('confirmPassword')}
-              </label>
-              <div className="password-wrap">
-                <input
-                  id="reg-confirm"
-                  type={showConfirm ? 'text' : 'password'}
-                  required
-                  minLength={8}
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="auth-input"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm((v) => !v)}
-                  className="password-toggle"
-                  aria-label={showConfirm ? 'Hide' : 'Show'}
-                >
-                  {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
           </div>
 
           <div className="auth-actions">
@@ -301,9 +289,57 @@ export default function RegisterPage() {
                 <strong>{successInfo.name}</strong>
               </p>
               <p className="muted">{successInfo.email}</p>
+              {successInfo.phone && (
+                <p className="muted" dir="ltr">{successInfo.phone}</p>
+              )}
               <span className="pill pill-success">
                 {t(`userTypes.${successInfo.user_type}`)}
               </span>
+
+              {successInfo.tempPassword && (
+                <div
+                  className="aside-temp-pass"
+                  style={{
+                    marginTop: '0.75rem',
+                    padding: '0.7rem',
+                    background: 'rgba(102, 252, 241, 0.08)',
+                    border: '1px dashed rgba(102, 252, 241, 0.4)',
+                    borderRadius: '10px',
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  <strong style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.4rem' }}>
+                    {t('tempPasswordTitle')}
+                  </strong>
+                  <code style={{
+                    display: 'block',
+                    direction: 'ltr',
+                    textAlign: 'left',
+                    background: 'rgba(0,0,0,0.3)',
+                    padding: '0.4rem 0.55rem',
+                    borderRadius: '6px',
+                    fontFamily: 'monospace',
+                    fontSize: '0.95rem',
+                    letterSpacing: '0.5px',
+                    marginBottom: '0.4rem',
+                    wordBreak: 'break-all',
+                  }}>
+                    {successInfo.tempPassword}
+                  </code>
+                  <button
+                    type="button"
+                    className="btn-outline"
+                    onClick={copyTempPassword}
+                    style={{ width: '100%', justifyContent: 'center', fontSize: '0.78rem', padding: '0.4rem' }}
+                  >
+                    <Copy size={12} />
+                    <span>{t('copyPassword')}</span>
+                  </button>
+                  <small style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginTop: '0.4rem', display: 'block' }}>
+                    {t('tempPasswordHint')}
+                  </small>
+                </div>
+              )}
             </div>
           )}
         </aside>

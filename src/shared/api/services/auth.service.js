@@ -11,12 +11,20 @@ export const authService = {
     return res.data;
   },
 
-  register: async ({ name, email, password, password_confirmation, user_type }) => {
+  /**
+   * Create a new platform user.
+   *
+   * The backend (StoreUserRequest + RegisteredUserController) now generates
+   * a one-time random password server-side, stamps an `expire_password` 48h
+   * in the future, and returns it in the response so the creator can hand
+   * it over to the new user. We therefore no longer send `password` —
+   * only the four fields the backend accepts: name, email, phone, user_type.
+   */
+  register: async ({ name, email, phone, user_type }) => {
     const res = await axiosInstance.post('/dashboard/register', {
       name,
       email,
-      password,
-      password_confirmation,
+      phone,
       user_type,
     });
     return unwrap(res);
