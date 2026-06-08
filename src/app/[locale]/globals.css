@@ -181,6 +181,28 @@ body {
   letter-spacing: 1px;
 }
 
+/* Let the nav take the remaining height and scroll on short viewports
+   (e.g. laptops) so the lower items — Roles, Card Templates, Settings —
+   are always reachable. min-height:0 is required for a flex child to
+   shrink below its content and actually scroll. */
+.sidebar-nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(102, 252, 241, 0.25) transparent;
+}
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(102, 252, 241, 0.25);
+  border-radius: 3px;
+}
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .sidebar-nav ul {
   list-style: none;
   display: flex;
@@ -4593,6 +4615,46 @@ a.kv-value:hover {
   border: 1px dashed currentColor;
   border-radius: 6px;
   opacity: 0.85;
+}
+
+/* Uploaded logo image (merged from the old demo "Card Templates"): rendered
+   on the preview card, plus a thumbnail in the controls. */
+.bcd-logo-img {
+  z-index: 2;
+  height: 26px;
+  width: auto;
+  max-width: 80px;
+  object-fit: contain;
+}
+.bcd-logo-upload {
+  margin: 0.5rem 0;
+}
+.bcd-logo-btn {
+  display: inline-flex;
+  cursor: pointer;
+}
+.bcd-logo-current {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.bcd-logo-thumb {
+  height: 36px;
+  width: auto;
+  max-width: 96px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 2px 4px;
+}
+.bcd-logo-remove {
+  padding-block: 0.35rem;
+}
+.bcd-logo-error {
+  display: block;
+  color: #ef4444;
+  font-size: 0.78rem;
+  margin-top: 4px;
 }
 
 .bcd-qr-ph {

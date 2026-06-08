@@ -6,9 +6,13 @@ const DEFAULT_DESIGN = {
   layout: 'modern',
   theme: { background: '#0B1220', text: '#FFFFFF', primary: '#0EA5E9', accent: '#22D3EE' },
   fields: { jobTitle: true, department: true, company: true, phone: true, email: true },
-  logo: { show: true, position: 'top-left' },
+  logo: { show: true, position: 'top-left', url: '' },
   qr: { show: true, position: 'bottom-right' },
 };
+
+// Cap the inlined logo so the stored design_json stays small. A real logo
+// belongs in object storage; data-URL inlining is fine for these templates.
+const MAX_LOGO_BYTES = 300 * 1024;
 
 const LAYOUTS = ['modern', 'classic', 'minimal'];
 const LOGO_POSITIONS = ['top-left', 'top-center', 'top-right'];
@@ -42,6 +46,7 @@ function mergeDefaults(parsed) {
   if (parsed.logo && typeof parsed.logo === 'object') {
     if (typeof parsed.logo.show === 'boolean') base.logo.show = parsed.logo.show;
     if (LOGO_POSITIONS.includes(parsed.logo.position)) base.logo.position = parsed.logo.position;
+    if (typeof parsed.logo.url === 'string') base.logo.url = parsed.logo.url;
   }
 
   if (parsed.qr && typeof parsed.qr === 'object') {
@@ -167,11 +172,19 @@ function PreviewCard({ t, design }) {
           <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 6, background: theme.primary }} />
         )}
 
-        {logo.show && (
+        {logo.show && (logo.url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logo.url}
+            alt="logo"
+            className="bcd-logo-img"
+            style={{ position: 'absolute', ...logoStyle }}
+          />
+        ) : (
           <div className="bcd-logo-ph" style={{ ...logoStyle, borderColor: theme.accent, color: theme.accent }}>
             LOGO
           </div>
-        )}
+        ))}
 
         {qr.show && (
           <div className="bcd-qr-ph" style={{ ...qrStyle, borderColor: theme.text }} aria-hidden="true">
@@ -187,6 +200,7 @@ function PreviewCard({ t, design }) {
 
 export function TemplateDesigner({ t, value, onChange, error }) {
   const [tab, setTab] = useState('design');
+  const [logoError, setLogoError] = useState(null);
 
   const { design, parseOk } = useMemo(() => {
     const raw = typeof value === 'string' ? value : '';
@@ -213,6 +227,21 @@ export function TemplateDesigner({ t, value, onChange, error }) {
   const setField = (key, val) => emit({ ...design, fields: { ...design.fields, [key]: val } });
   const setLogoShow = (val) => emit({ ...design, logo: { ...design.logo, show: val } });
   const setLogoPos = (val) => emit({ ...design, logo: { ...design.logo, position: val } });
+  const setLogoUrl = (val) => emit({ ...design, logo: { ...design.logo, url: val } });
+
+  const onLogoFile = (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = ''; // let the same file be re-picked after a remove
+    if (!file) return;
+    if (file.size > MAX_LOGO_BYTES) {
+      setLogoError(t('logoTooLarge'));
+      return;
+    }
+    setLogoError(null);
+    const reader = new FileReader();
+    reader.onload = () => setLogoUrl(typeof reader.result === 'string' ? reader.result : '');
+    reader.readAsDataURL(file);
+  };
   const setQrShow = (val) => emit({ ...design, qr: { ...design.qr, show: val } });
   const setQrPos = (val) => emit({ ...design, qr: { ...design.qr, position: val } });
 
@@ -307,11 +336,30 @@ export function TemplateDesigner({ t, value, onChange, error }) {
                 <span>{t('showLogo')}</span>
               </label>
               {design.logo.show && (
-                <select className="modal-input bcd-pos-select" value={design.logo.position} onChange={(e) => setLogoPos(e.target.value)}>
-                  <option value="top-left">{t('posTopLeft')}</option>
-                  <option value="top-center">{t('posTopCenter')}</option>
-                  <option value="top-right">{t('posTopRight')}</option>
-                </select>
+                <>
+                  <div className="bcd-logo-upload">
+                    {design.logo.url ? (
+                      <div className="bcd-logo-current">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={design.logo.url} alt="logo" className="bcd-logo-thumb" />
+                        <button type="button" className="btn-outline bcd-logo-remove" onClick={() => setLogoUrl('')}>
+                          {t('removeLogo')}
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="btn-outline bcd-logo-btn">
+                        {t('uploadLogo')}
+                        <input type="file" accept="image/*" hidden onChange={onLogoFile} />
+                      </label>
+                    )}
+                  </div>
+                  {logoError && <small className="bcd-logo-error">{logoError}</small>}
+                  <select className="modal-input bcd-pos-select" value={design.logo.position} onChange={(e) => setLogoPos(e.target.value)}>
+                    <option value="top-left">{t('posTopLeft')}</option>
+                    <option value="top-center">{t('posTopCenter')}</option>
+                    <option value="top-right">{t('posTopRight')}</option>
+                  </select>
+                </>
               )}
             </div>
 

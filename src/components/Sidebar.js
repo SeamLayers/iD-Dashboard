@@ -96,7 +96,6 @@ export default function Sidebar() {
       icon: <ShieldCheck size={20} />,
       anyOf: ['role.view'],
     },
-    { name: t('templates'), path: '/templates', icon: <CreditCard size={20} /> },
     { name: t('settings'), path: '/settings', icon: <Settings size={20} /> },
   ].filter(Boolean);
 
