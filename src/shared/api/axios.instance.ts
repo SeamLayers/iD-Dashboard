@@ -28,6 +28,15 @@ axiosInstance.interceptors.request.use(
       delete config.headers['Content-Type'];
     }
 
+    // The host's WAF (LiteSpeed mod_security) returns a 403 for POST/PUT/PATCH
+    // requests that carry an empty body. Action endpoints such as
+    // business-cards/{id}/submit|publish|deactivate are called without a
+    // payload, so send an empty JSON object to satisfy the WAF.
+    const method = (config.method || 'get').toLowerCase();
+    if (['post', 'put', 'patch'].includes(method) && (config.data === undefined || config.data === null)) {
+      config.data = {};
+    }
+
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem(ACCESS_TOKEN_KEY);
       if (token) {
