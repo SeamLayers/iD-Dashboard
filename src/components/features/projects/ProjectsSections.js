@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Folder, Calendar, Pencil, Trash2, X, Plus, Check, Search, Users, Loader2 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
+import { useAuth } from '@/shared/auth/AuthProvider';
 
 function formatDate(value) {
   if (!value) return '—';
@@ -41,6 +42,7 @@ export function ProjectsFilters({ t, search, setSearch, companyId, setCompanyId,
 }
 
 export function ProjectCard({ t, project, onEdit, onDelete }) {
+  const { hasPermission } = useAuth();
   const employeesCount = project.employees_count ?? project.employees?.length ?? 0;
   return (
     <div className="entity-card glass-panel">
@@ -70,9 +72,11 @@ export function ProjectCard({ t, project, onEdit, onDelete }) {
           <Pencil size={14} />
           <span>{t('editProject')}</span>
         </button>
-        <button className="btn-icon danger" onClick={() => onDelete(project)} aria-label="Delete">
-          <Trash2 size={16} />
-        </button>
+        {hasPermission('project.delete') && (
+          <button className="btn-icon danger" onClick={() => onDelete(project)} aria-label="Delete">
+            <Trash2 size={16} />
+          </button>
+        )}
       </div>
     </div>
   );

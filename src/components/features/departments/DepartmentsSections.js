@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Briefcase, Pencil, Trash2, X, Plus, Check, Search, Loader2 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
+import { useAuth } from '@/shared/auth/AuthProvider';
 
 export function DepartmentsFilters({ t, search, setSearch, companyId, setCompanyId, companies, showCompanyFilter = true }) {
   return (
@@ -38,6 +39,7 @@ export function DepartmentsFilters({ t, search, setSearch, companyId, setCompany
 }
 
 export function DepartmentCard({ t, department, onEdit, onDelete }) {
+  const { hasPermission } = useAuth();
   return (
     <div className="entity-card glass-panel">
       <div className="entity-card-header">
@@ -66,9 +68,11 @@ export function DepartmentCard({ t, department, onEdit, onDelete }) {
           <Pencil size={14} />
           <span>{t('editDepartment')}</span>
         </button>
-        <button className="btn-icon danger" onClick={() => onDelete(department)} aria-label="Delete">
-          <Trash2 size={16} />
-        </button>
+        {hasPermission('department.delete') && (
+          <button className="btn-icon danger" onClick={() => onDelete(department)} aria-label="Delete">
+            <Trash2 size={16} />
+          </button>
+        )}
       </div>
     </div>
   );

@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { MapPin, Pencil, Trash2, X, Plus, Check, Building2, Loader2 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
+import { useAuth } from '@/shared/auth/AuthProvider';
 
 export function BranchCard({ t, branch, onEdit, onDelete }) {
+  const { hasPermission } = useAuth();
   return (
     <div className="entity-card glass-panel">
       <div className="entity-card-header">
@@ -30,9 +32,11 @@ export function BranchCard({ t, branch, onEdit, onDelete }) {
           <Pencil size={14} />
           <span>{t('editBranch')}</span>
         </button>
-        <button className="btn-icon danger" onClick={() => onDelete(branch)} aria-label="Delete">
-          <Trash2 size={16} />
-        </button>
+        {hasPermission('company_branch.delete') && (
+          <button className="btn-icon danger" onClick={() => onDelete(branch)} aria-label="Delete">
+            <Trash2 size={16} />
+          </button>
+        )}
       </div>
     </div>
   );

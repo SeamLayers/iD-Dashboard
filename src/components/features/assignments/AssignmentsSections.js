@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Trash2, X, Plus, UserPlus } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
+import { useAuth } from '@/shared/auth/AuthProvider';
 
 function formatDateTime(value) {
   if (!value) return '—';
@@ -36,6 +37,7 @@ export function AssignmentsFilters({ t, employeeId, setEmployeeId, projectId, se
 
 export function AssignmentsTable({ t, items, onDelete }) {
   const tCommon = useTranslations('Common');
+  const { hasPermission } = useAuth();
   return (
     <div className="emp-table-wrap glass-panel assignment-table-wrap">
       <table className="assignment-table">
@@ -59,9 +61,11 @@ export function AssignmentsTable({ t, items, onDelete }) {
               <td>{row.project?.name || `#${row.project_id}`}</td>
               <td dir="ltr">{formatDateTime(row.assigned_at)}</td>
               <td style={{ textAlign: 'end' }}>
-                <button className="btn-icon danger" onClick={() => onDelete(row)} aria-label="Remove">
-                  <Trash2 size={16} />
-                </button>
+                {hasPermission('employee_project.delete') && (
+                  <button className="btn-icon danger" onClick={() => onDelete(row)} aria-label="Remove">
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </td>
             </tr>
           ))}

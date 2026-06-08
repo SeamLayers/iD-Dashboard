@@ -6,6 +6,7 @@ import {
   Plus, Upload, Search, MoreVertical, Edit2, Trash2, X, Check, Mail, Phone, Hash, Loader2,
 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
+import { useAuth } from '@/shared/auth/AuthProvider';
 
 function getInitials(name = '') {
   return name
@@ -103,6 +104,7 @@ export function EmployeesFilters({
 
 export function EmployeesTable({ t, employees, openMenuId, setOpenMenuId, onEdit, onDelete }) {
   const tCommon = useTranslations('Common');
+  const { hasPermission } = useAuth();
   return (
     <div className="emp-table-wrap glass-panel">
       <table className="emp-table">
@@ -155,9 +157,11 @@ export function EmployeesTable({ t, employees, openMenuId, setOpenMenuId, onEdit
                           <button className="kebab-item" onClick={() => onEdit(employee)}>
                             <Edit2 size={14} /><span>{tCommon('edit')}</span>
                           </button>
-                          <button className="kebab-item kebab-danger" onClick={() => onDelete(employee)}>
-                            <Trash2 size={14} /><span>{tCommon('delete')}</span>
-                          </button>
+                          {hasPermission('employee.delete') && (
+                            <button className="kebab-item kebab-danger" onClick={() => onDelete(employee)}>
+                              <Trash2 size={14} /><span>{tCommon('delete')}</span>
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
