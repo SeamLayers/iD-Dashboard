@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Palette, Pencil, Trash2, X, Plus, Check, Loader2 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
+import { TemplateDesigner } from './TemplateDesigner';
 
 function safeStringify(value) {
   if (value === null || value === undefined) return '';
@@ -99,7 +100,7 @@ export function BusinessCardTemplateFormDialog({ t, isOpen, onClose, initial, co
   };
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} panelClassName="modal-box glass-panel modal-form" panelStyle={{ maxWidth: 600 }}>
+    <Dialog isOpen={isOpen} onClose={onClose} panelClassName="modal-box glass-panel modal-form" panelStyle={{ maxWidth: 720 }}>
       <div className="modal-header">
         <h3 className="modal-title">{isEdit ? t('editTemplate') : t('addTemplate')}</h3>
         <button className="modal-close" onClick={onClose} type="button"><X size={18} /></button>
@@ -120,16 +121,7 @@ export function BusinessCardTemplateFormDialog({ t, isOpen, onClose, initial, co
         </div>
         <div className="modal-field">
           <label>{t('designJson')}</label>
-          <textarea
-            className="modal-textarea"
-            value={designJson}
-            onChange={(e) => setDesignJson(e.target.value)}
-            placeholder={'{\n  "layout": "default"\n}'}
-          />
-          <small style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{t('designJsonHint')}</small>
-          {jsonError && (
-            <p style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: 4 }}>{jsonError}</p>
-          )}
+          <TemplateDesigner t={t} value={designJson} onChange={setDesignJson} error={jsonError} />
         </div>
         <div className="modal-field">
           <label className="modal-checkbox">
