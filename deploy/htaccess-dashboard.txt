@@ -1,0 +1,54 @@
+# iD+ Dashboard — production .htaccess (Apache / LiteSpeed compatible)
+# Upload to the web root, next to the exported /ar and /en trees and /_next.
+# Rename this file to ".htaccess" on the server (the deploy zip already
+# contains it as .htaccess at the root).
+
+# Custom 404 page emitted by `next build` (output: 'export')
+ErrorDocument 404 /404.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # ---------------------------------------------------------------
+  # Flag hashed build assets so mod_headers can mark them immutable.
+  # ---------------------------------------------------------------
+  RewriteRule ^_next/static/ - [E=IMMUTABLE_ASSET:1]
+
+  # ---------------------------------------------------------------
+  # Root locale negotiation (middleware is unavailable in a static
+  # export, so the server decides the landing locale):
+  #   1) The NEXT_LOCALE cookie (set by the in-app language switcher) wins.
+  #   2) Otherwise Accept-Language starting with "en" -> /en/, else /ar/.
+  # ---------------------------------------------------------------
+  RewriteCond %{HTTP_COOKIE} (^|;\s*)NEXT_LOCALE=en [NC]
+  RewriteRule ^$ /en/ [R=302,L]
+
+  RewriteCond %{HTTP_COOKIE} (^|;\s*)NEXT_LOCALE=ar [NC]
+  RewriteRule ^$ /ar/ [R=302,L]
+
+  RewriteCond %{HTTP:Accept-Language} ^en [NC]
+  RewriteRule ^$ /en/ [R=302,L]
+
+  RewriteRule ^$ /ar/ [R=302,L]
+
+  # ---------------------------------------------------------------
+  # Legacy unprefixed URLs (pre-export deep links) -> Arabic default
+  # tree with permanent redirects so old bookmarks keep working.
+  # ---------------------------------------------------------------
+  RewriteRule ^(login|employees|departments|projects|business-cards|business-card-templates|approvals|companies|branches|assignments|register|roles|settings|my-company|leads|notifications|forgot-password|reset-password)(/.*)?$ /ar/$1$2 [R=301,L]
+</IfModule>
+
+# -----------------------------------------------------------------
+# Immutable caching for hashed Next.js build assets (/_next/static/)
+# -----------------------------------------------------------------
+<IfModule mod_headers.c>
+  Header set Cache-Control "public, max-age=31536000, immutable" env=IMMUTABLE_ASSET
+</IfModule>
+
+# -----------------------------------------------------------------
+# Compression
+# -----------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/x-javascript application/json application/xml image/svg+xml font/ttf font/otf application/vnd.ms-fontobject
+</IfModule>

@@ -1,7 +1,8 @@
 import "./globals.css";
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { routing } from '@/i18n/routing';
 import ThemeProvider from "@/components/ThemeProvider";
 import { ReactQueryProvider } from "@/shared/providers/ReactQueryProvider";
 import { AuthProvider } from "@/shared/auth/AuthProvider";
@@ -14,13 +15,21 @@ export const metadata = {
   description: "Ultra-premium B2B SaaS Dashboard for iD+ by Mhawer",
 };
 
+// Static export: pre-render one tree per locale (out/ar/, out/en/).
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
+
 export default async function RootLayout({ children, params }) {
   const resolvedParams = await params;
   const { locale } = resolvedParams;
 
-  if (!['en', 'ar'].includes(locale)) {
+  if (!routing.locales.includes(locale)) {
     notFound();
   }
+
+  // Enable static rendering for next-intl under `output: 'export'`.
+  setRequestLocale(locale);
 
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
   const messages = await getMessages();

@@ -4,7 +4,9 @@ import {createNavigation} from 'next-intl/navigation';
 export const routing = defineRouting({
   locales: ['ar', 'en'],
   defaultLocale: 'ar',
-  localePrefix: 'as-needed'
+  // 'always' so the static export emits fully-prefixed /ar/... and /en/...
+  // trees; the root redirect is handled by .htaccess on the server.
+  localePrefix: 'always'
 });
  
 // Lightweight wrappers around Next.js' navigation APIs

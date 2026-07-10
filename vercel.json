@@ -1,0 +1,6 @@
+{
+  "redirects": [
+    { "source": "/", "destination": "/ar/", "permanent": false },
+    { "source": "/:path(login|employees|departments|projects|business-cards|business-card-templates|approvals|companies|branches|assignments|register|roles|settings|my-company|leads|notifications|forgot-password|reset-password)/:rest*", "destination": "/ar/:path/:rest*", "permanent": true }
+  ]
+}

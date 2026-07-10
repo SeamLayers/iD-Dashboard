@@ -76,6 +76,9 @@ export default function SettingsPage() {
 
   const switchLanguage = (lang) => {
     if (lang !== locale) {
+      // Persist the choice for the .htaccess root redirect on the static host
+      // (middleware locale negotiation is unavailable with `output: 'export'`).
+      document.cookie = `NEXT_LOCALE=${lang}; path=/; max-age=31536000; SameSite=Lax`;
       router.replace({ pathname }, { locale: lang });
     }
   };

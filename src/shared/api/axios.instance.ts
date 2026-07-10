@@ -68,7 +68,7 @@ axiosInstance.interceptors.response.use(
         localStorage.removeItem(PERMISSIONS_KEY);
         localStorage.removeItem(ROLES_KEY);
         const locale = path.startsWith('/ar') ? '/ar' : path.startsWith('/en') ? '/en' : '';
-        window.location.href = `${locale}/login`;
+        window.location.href = `${locale || '/ar'}/login/`;
       }
     }
 
