@@ -12,7 +12,8 @@ import {
   useCompaniesForCurrentUser,
   useBranches,
 } from '@/shared/api/hooks';
-import { useAuth } from '@/shared/auth/AuthProvider';
+import { useRole } from '@/shared/auth/useRole';
+import PermissionGate from '@/shared/auth/PermissionGate';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 import {
@@ -49,8 +50,7 @@ export default function DepartmentsPage() {
     ...(companyId ? { company_id: companyId } : {}),
   };
 
-  const { hasRole } = useAuth();
-  const isOwner = hasRole('owner') && !hasRole('superadmin');
+  const { isOwner } = useRole();
 
   const { data, isLoading, isError, error, refetch } = useDepartments(queryParams);
   const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });
@@ -101,10 +101,12 @@ export default function DepartmentsPage() {
           <p className="page-subtitle">{t('subtitle')}</p>
         </div>
         <div className="page-actions">
-          <button className="btn-primary" onClick={() => { setEditTarget(null); setShowForm(true); }}>
-            <Plus size={16} />
-            <span>{t('addDepartment')}</span>
-          </button>
+          <PermissionGate permission="department.create">
+            <button className="btn-primary" onClick={() => { setEditTarget(null); setShowForm(true); }}>
+              <Plus size={16} />
+              <span>{t('addDepartment')}</span>
+            </button>
+          </PermissionGate>
         </div>
       </div>
 

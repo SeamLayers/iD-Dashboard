@@ -12,7 +12,7 @@ import {
   useCompaniesForCurrentUser,
   useEmployees,
 } from '@/shared/api/hooks';
-import { useAuth } from '@/shared/auth/AuthProvider';
+import { useRole } from '@/shared/auth/useRole';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 import {
@@ -49,8 +49,7 @@ export default function ProjectsPage() {
     ...(companyId ? { company_id: companyId } : {}),
   };
 
-  const { hasRole } = useAuth();
-  const isOwner = hasRole('owner') && !hasRole('superadmin');
+  const { isOwner } = useRole();
 
   const { data, isLoading, isError, error, refetch } = useProjects(queryParams);
   const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });

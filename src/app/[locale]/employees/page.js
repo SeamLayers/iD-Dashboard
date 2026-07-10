@@ -19,7 +19,7 @@ import {
   useBranches,
   useDepartments,
 } from '@/shared/api/hooks';
-import { useAuth } from '@/shared/auth/AuthProvider';
+import { useRole } from '@/shared/auth/useRole';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 
@@ -46,8 +46,7 @@ export default function EmployeesPage() {
     ...(branchId ? { branch_id: branchId } : {}),
   };
 
-  const { hasRole } = useAuth();
-  const isOwner = hasRole('owner') && !hasRole('superadmin');
+  const { isOwner } = useRole();
 
   const { data, isLoading, isError, error, refetch } = useEmployees(queryParams);
   const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });

@@ -3,13 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { companiesService } from '../services';
 import { queryKeys } from './queryKeys';
 import { useAuth } from '@/shared/auth/AuthProvider';
+import { useRole } from '@/shared/auth/useRole';
 
-export const useCompanies = (params = {}) => {
+export const useCompanies = (params = {}, { enabled = true } = {}) => {
   const { isAuthenticated } = useAuth();
   return useQuery({
     queryKey: queryKeys.companies.list(params),
     queryFn: () => companiesService.list(params),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && enabled,
   });
 };
 
@@ -36,9 +37,8 @@ export const useMyCompany = () => {
  * submit because the `<select required>` has no valid value.
  */
 export const useCompaniesForCurrentUser = (params = {}) => {
-  const { hasRole, isAuthenticated, isReady } = useAuth();
-  const isSuperadmin = hasRole('superadmin');
-  const isOwner = !isSuperadmin && hasRole('owner');
+  const { isAuthenticated } = useAuth();
+  const { isSuperadmin, isOwner, isReady } = useRole();
 
   const fullList = useQuery({
     queryKey: queryKeys.companies.list(params),

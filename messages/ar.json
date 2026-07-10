@@ -145,6 +145,7 @@
   "Companies": {
     "title": "الشركات",
     "subtitle": "إدارة جميع الشركات على منصة iD+.",
+    "forbidden": "قائمة الشركات متاحة للمشرف العام فقط.",
     "addCompany": "إضافة شركة",
     "editCompany": "تعديل الشركة",
     "deleteCompany": "حذف الشركة؟",

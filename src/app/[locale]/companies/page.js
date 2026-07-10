@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'react-hot-toast';
-import { Plus, Building2 } from 'lucide-react';
+import { Plus, Building2, ShieldAlert } from 'lucide-react';
 import {
   useCompanies,
   useCreateCompany,
   useUpdateCompany,
   useDeleteCompany,
 } from '@/shared/api/hooks';
+import { useRole } from '@/shared/auth/useRole';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 import {
@@ -27,7 +28,11 @@ export default function CompaniesPage() {
   const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const { data, isLoading, isError, error, refetch } = useCompanies({ page });
+  const { isSuperadmin, isReady } = useRole();
+
+  // The companies index endpoint is superadmin-only — gate the query so
+  // non-superadmins never fire the request (the guard below renders instead).
+  const { data, isLoading, isError, error, refetch } = useCompanies({ page }, { enabled: isSuperadmin });
   const createMutation = useCreateCompany();
   const updateMutation = useUpdateCompany();
   const deleteMutation = useDeleteCompany();
@@ -79,6 +84,19 @@ export default function CompaniesPage() {
     setEditTarget(company);
     setShowForm(true);
   };
+
+  // Page guard: the companies index is superadmin-only (same pattern as my-company).
+  if (isReady && !isSuperadmin) {
+    return (
+      <div className="page-wrap">
+        <div className="entity-empty glass-panel">
+          <ShieldAlert size={48} />
+          <h3>{tCommon('errorOccurred')}</h3>
+          <p>{t('forbidden')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-wrap">

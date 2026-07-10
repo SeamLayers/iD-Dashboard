@@ -64,10 +64,12 @@ export function DepartmentCard({ t, department, onEdit, onDelete }) {
         </div>
       </div>
       <div className="entity-card-actions">
-        <button className="btn-outline" onClick={() => onEdit(department)}>
-          <Pencil size={14} />
-          <span>{t('editDepartment')}</span>
-        </button>
+        {hasPermission('department.update') && (
+          <button className="btn-outline" onClick={() => onEdit(department)}>
+            <Pencil size={14} />
+            <span>{t('editDepartment')}</span>
+          </button>
+        )}
         {hasPermission('department.delete') && (
           <button className="btn-icon danger" onClick={() => onDelete(department)} aria-label="Delete">
             <Trash2 size={16} />

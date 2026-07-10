@@ -145,6 +145,7 @@
   "Companies": {
     "title": "Companies",
     "subtitle": "Manage all companies on the iD+ platform.",
+    "forbidden": "Only superadmins can view the companies list.",
     "addCompany": "Add Company",
     "editCompany": "Edit Company",
     "deleteCompany": "Delete Company?",

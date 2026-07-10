@@ -16,7 +16,7 @@ import {
   useEmployees,
   useBusinessCardTemplates,
 } from '@/shared/api/hooks';
-import { useAuth } from '@/shared/auth/AuthProvider';
+import { useRole } from '@/shared/auth/useRole';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 import {
@@ -50,8 +50,7 @@ export default function BusinessCardsPage() {
     ...(companyId ? { company_id: companyId } : {}),
   };
 
-  const { hasRole } = useAuth();
-  const isOwner = hasRole('owner') && !hasRole('superadmin');
+  const { isOwner } = useRole();
 
   const { data, isLoading, isError, error, refetch } = useBusinessCards(queryParams);
   const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });

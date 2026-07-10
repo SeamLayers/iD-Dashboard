@@ -16,7 +16,7 @@ import {
   Key,
 } from 'lucide-react';
 import { useRouter } from '@/i18n/routing';
-import { useAuth } from '@/shared/auth/AuthProvider';
+import { useRole } from '@/shared/auth/useRole';
 import { useRegisterUser } from '@/shared/api/hooks';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 
@@ -39,7 +39,7 @@ export default function RegisterPage() {
   const t = useTranslations('Register');
   const tCommon = useTranslations('Common');
   const router = useRouter();
-  const { hasRole, isReady } = useAuth();
+  const { isSuperadmin, isOwner, isReady } = useRole();
   const registerMutation = useRegisterUser();
 
   const [name, setName] = useState('');
@@ -49,8 +49,7 @@ export default function RegisterPage() {
   const [errorMsg, setErrorMsg] = useState(null);
   const [successInfo, setSuccessInfo] = useState(null);
 
-  const isSuperadmin = hasRole('superadmin');
-  const isOwner = hasRole('owner');
+  // Page guard: only superadmins and owners may create user accounts.
   const canAccess = isSuperadmin || isOwner;
 
   // Owners can only create employees within their own company. Superadmins

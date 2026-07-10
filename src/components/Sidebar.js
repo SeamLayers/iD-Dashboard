@@ -17,27 +17,36 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '@/shared/auth/AuthProvider';
+import { useRole } from '@/shared/auth/useRole';
+
+const ROLE_LABEL_KEYS = {
+  superadmin: 'superAdmin',
+  owner: 'owner',
+  member: 'member',
+};
 
 export default function Sidebar() {
   const t = useTranslations('Sidebar');
   const pathname = usePathname();
   const { hasAnyPermission, hasRole } = useAuth();
+  const { role } = useRole();
 
-  const isSuperAdmin = hasRole('superadmin');
-  const isOwner = hasRole('owner');
-
+  // Declarative menu: `roles` = any-of role gate, `anyOf` = any-of permission gate.
+  // Items without gates are visible to every authenticated user.
   const menuItems = [
     { name: t('dashboard'), path: '/', icon: <LayoutDashboard size={20} /> },
     // Owner-only landing page powered by GET /dashboard/owner/company.
-    isOwner && {
+    {
       name: t('myCompany'),
       path: '/my-company',
       icon: <Building2 size={20} />,
+      roles: ['owner'],
     },
-    isSuperAdmin && {
+    {
       name: t('companies'),
       path: '/companies',
       icon: <Building2 size={20} />,
+      roles: ['superadmin'],
       anyOf: ['company.view'],
     },
     {
@@ -72,12 +81,18 @@ export default function Sidebar() {
     },
     // POST /dashboard/register — admin creates user accounts.
     // Open to superadmin and owner.
-    (isSuperAdmin || isOwner) && {
+    {
       name: t('register'),
       path: '/register',
       icon: <UserCog size={20} />,
+      roles: ['superadmin', 'owner'],
     },
-    { name: t('approvals'), path: '/approvals', icon: <CheckSquare size={20} /> },
+    {
+      name: t('approvals'),
+      path: '/approvals',
+      icon: <CheckSquare size={20} />,
+      anyOf: ['business_card.view'],
+    },
     {
       name: t('businessCards'),
       path: '/business-cards',
@@ -96,13 +111,15 @@ export default function Sidebar() {
       icon: <ShieldCheck size={20} />,
       anyOf: ['role.view'],
     },
+    // Settings stays visible to all authenticated users.
     { name: t('settings'), path: '/settings', icon: <Settings size={20} /> },
-  ].filter(Boolean);
+  ];
 
-  const visibleItems = menuItems.filter((item) => {
-    if (!item.anyOf) return true;
-    return hasAnyPermission(item.anyOf);
-  });
+  const visibleItems = menuItems.filter(
+    (item) =>
+      (!item.roles || hasRole(item.roles)) &&
+      (!item.anyOf || hasAnyPermission(item.anyOf))
+  );
 
   return (
     <aside className="sidebar glass-panel">
@@ -129,14 +146,7 @@ export default function Sidebar() {
 
       <div className="sidebar-footer">
         <div className="glowing-line shrink-line"></div>
-        <p className="version">
-          v1.0 -{' '}
-          {isSuperAdmin
-            ? t('superAdmin')
-            : isOwner
-              ? t('owner')
-              : t('member')}
-        </p>
+        <p className="version">v1.0 - {t(ROLE_LABEL_KEYS[role])}</p>
       </div>
     </aside>
   );
