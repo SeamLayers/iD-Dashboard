@@ -2,37 +2,27 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'react-hot-toast';
-import { Download, LayoutList, Kanban, Building2, Calendar, CreditCard, LockKeyhole } from 'lucide-react';
-
-const LEADS_DATA = [
-  { id: 1, name: 'Faisal Al-Rashid', company: 'Saudi Aramco', source: 'Ahmed', date: '2026-03-05', stage: 'new' },
-  { id: 2, name: 'Huda Mansour', company: 'SABIC', source: 'Sarah', date: '2026-03-04', stage: 'new' },
-  { id: 3, name: 'Khalid Bashar', company: 'STC', source: 'Ahmed', date: '2026-03-03', stage: 'contacted' },
-  { id: 4, name: 'Reem Taha', company: 'NEOM', source: 'Laila', date: '2026-03-02', stage: 'contacted' },
-  { id: 5, name: 'Majed Qasim', company: 'Maaden', source: 'Omar', date: '2026-03-01', stage: 'contacted' },
-  { id: 6, name: 'Dina Saad', company: 'Riyad Bank', source: 'Sarah', date: '2026-02-28', stage: 'negotiation' },
-  { id: 7, name: 'Yasser Hamdi', company: 'Elm', source: 'Ahmed', date: '2026-02-27', stage: 'negotiation' },
-  { id: 8, name: 'Nadia Fares', company: 'Almarai', source: 'Laila', date: '2026-02-25', stage: 'won' },
-  { id: 9, name: 'Amr Shaker', company: 'Saudi Electricity Company', source: 'Omar', date: '2026-02-23', stage: 'won' },
-  { id: 10, name: 'Lina Youssef', company: 'Kingdom Holding', source: 'Ahmed', date: '2026-02-20', stage: 'won' },
-];
+import { Download, LayoutList, Kanban, LockKeyhole } from 'lucide-react';
 
 const STAGES = ['new', 'contacted', 'negotiation', 'won'];
+const stageColors = {
+  new: '#66FCF1',
+  contacted: '#FFA726',
+  negotiation: '#AB47BC',
+  won: '#66BB6A',
+};
+
+// This is a locked "coming soon" teaser — the CRM feature isn't wired to the
+// backend yet. The preview behind the blur uses neutral skeleton placeholders
+// (never fabricated lead names/companies) so nothing on the dashboard looks
+// like real data when it isn't.
+const SKELETON_PER_STAGE = { new: 2, contacted: 3, negotiation: 2, won: 3 };
 
 export default function LeadsPage() {
   const t = useTranslations('CRM');
   const tDemo = useTranslations('Demo');
   const [view, setView] = useState('kanban');
   const [notifyRequested, setNotifyRequested] = useState(false);
-
-  const getLeadsByStage = (stage) => LEADS_DATA.filter(l => l.stage === stage);
-
-  const stageColors = {
-    new: '#66FCF1',
-    contacted: '#FFA726',
-    negotiation: '#AB47BC',
-    won: '#66BB6A',
-  };
 
   return (
     <div className="crm-page">
@@ -43,7 +33,7 @@ export default function LeadsPage() {
           <p className="crm-subtitle">{t('subtitle')}</p>
         </div>
         <div className="crm-header-actions">
-          <button className="btn-outline transition-all duration-300" onClick={() => toast.success(tDemo('crmExported'))}>
+          <button className="btn-outline transition-all duration-300" disabled>
             <Download size={16} />
             <span>{t('export')}</span>
           </button>
@@ -68,12 +58,12 @@ export default function LeadsPage() {
             <span>{t('kanbanView')}</span>
           </button>
         </div>
-        <span className="crm-lead-count">{t('totalLeads', { count: LEADS_DATA.length })}</span>
+        <span className="crm-lead-count">{t('comingSoonBadge')}</span>
       </div>
 
       <div className="crm-premium-shell">
         <div className="crm-premium-content" aria-hidden="true">
-          {/* ── Kanban Board ── */}
+          {/* ── Kanban skeleton preview ── */}
           {view === 'kanban' && (
             <div className="crm-kanban">
               {STAGES.map(stage => (
@@ -81,33 +71,18 @@ export default function LeadsPage() {
                   <div className="crm-col-header">
                     <div className="crm-col-dot" style={{ background: stageColors[stage], boxShadow: `0 0 8px ${stageColors[stage]}` }} />
                     <h3 className="crm-col-title">{t(`stage_${stage}`)}</h3>
-                    <span className="crm-col-count">{getLeadsByStage(stage).length}</span>
                   </div>
                   <div className="crm-col-cards">
-                    {getLeadsByStage(stage).map(lead => (
-                      <div className="crm-card glass-panel" key={lead.id} style={{ '--card-accent': stageColors[stage] }}>
+                    {Array.from({ length: SKELETON_PER_STAGE[stage] }).map((_, i) => (
+                      <div className="crm-card glass-panel crm-skel-card" key={i} style={{ '--card-accent': stageColors[stage] }}>
                         <div className="crm-card-top">
-                          <div className="crm-card-avatar" style={{ borderColor: stageColors[stage] }}>
-                            {lead.name.split(' ').map(n => n[0]).join('')}
-                          </div>
-                          <div>
-                            <p className="crm-card-name">{lead.name}</p>
-                            <div className="crm-card-company">
-                              <Building2 size={12} />
-                              <span>{lead.company}</span>
-                            </div>
+                          <div className="crm-skel crm-skel-avatar" />
+                          <div className="crm-skel-lines">
+                            <div className="crm-skel crm-skel-line w-70" />
+                            <div className="crm-skel crm-skel-line w-45" />
                           </div>
                         </div>
-                        <div className="crm-card-meta">
-                          <div className="crm-card-source">
-                            <CreditCard size={12} />
-                            <span>{t('source')}: {lead.source}</span>
-                          </div>
-                          <div className="crm-card-date">
-                            <Calendar size={12} />
-                            <span>{lead.date}</span>
-                          </div>
-                        </div>
+                        <div className="crm-skel crm-skel-line w-90" />
                       </div>
                     ))}
                   </div>
@@ -116,7 +91,7 @@ export default function LeadsPage() {
             </div>
           )}
 
-          {/* ── List View ── */}
+          {/* ── List skeleton preview ── */}
           {view === 'list' && (
             <div className="crm-list-wrap glass-panel">
               <table className="crm-list-table">
@@ -130,29 +105,18 @@ export default function LeadsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {LEADS_DATA.map(lead => (
-                    <tr key={lead.id}>
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <tr key={i}>
                       <td>
                         <div className="crm-list-user">
-                          <div className="crm-list-avatar" style={{ borderColor: stageColors[lead.stage] }}>
-                            {lead.name.split(' ').map(n => n[0]).join('')}
-                          </div>
-                          <span>{lead.name}</span>
+                          <div className="crm-skel crm-skel-avatar" />
+                          <div className="crm-skel crm-skel-line w-70" />
                         </div>
                       </td>
-                      <td>{lead.company}</td>
-                      <td>
-                        <span className="crm-source-tag">
-                          <CreditCard size={12} />
-                          {lead.source}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="crm-stage-pill" style={{ color: stageColors[lead.stage], background: `${stageColors[lead.stage]}18`, borderColor: `${stageColors[lead.stage]}33` }}>
-                          {t(`stage_${lead.stage}`)}
-                        </span>
-                      </td>
-                      <td className="crm-list-date">{lead.date}</td>
+                      <td><div className="crm-skel crm-skel-line w-80" /></td>
+                      <td><div className="crm-skel crm-skel-line w-50" /></td>
+                      <td><div className="crm-skel crm-skel-line w-45" /></td>
+                      <td><div className="crm-skel crm-skel-line w-60" /></td>
                     </tr>
                   ))}
                 </tbody>

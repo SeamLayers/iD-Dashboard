@@ -4700,3 +4700,292 @@ a.kv-value:hover {
   }
 }
 
+
+/* =========================================================================
+   Employee full-page form screen (replaces the old Add-Employee modal)
+   ========================================================================= */
+.empf-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 2rem;
+}
+
+.empf-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  flex-wrap: wrap;
+}
+
+.empf-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.empf-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1px solid var(--border-glass);
+  background: rgba(var(--color-black-rgb), 0.05);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.empf-back:hover {
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+.rtl .empf-back svg { transform: scaleX(-1); }
+
+.empf-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.empf-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.empf-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.empf-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.empf-card { padding: 1.4rem 1.5rem 1.6rem; }
+
+.empf-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.3rem;
+}
+.empf-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(0, 196, 204, 0.16), rgba(0, 153, 158, 0.08));
+  border: 1px solid var(--border-glass);
+  color: var(--accent-cyan);
+  flex-shrink: 0;
+}
+.empf-card-head h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.empf-card-head span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.empf-fields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem 1.1rem;
+}
+.empf-field { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+.empf-field-full { grid-column: 1 / -1; }
+
+.empf-field label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.empf-field label em {
+  color: var(--accent-cyan);
+  font-style: normal;
+}
+.empf-field label svg { color: var(--text-muted); }
+
+.empf-input {
+  width: 100%;
+  padding: 0.72rem 0.9rem;
+  background: rgba(var(--color-black-rgb), 0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: 11px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.empf-input:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 196, 204, 0.15);
+}
+.empf-input::placeholder { color: var(--text-muted); }
+select.empf-input {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 12px;
+}
+.ltr select.empf-input { padding-right: 2.2rem; background-position: right 0.85rem center; }
+.rtl select.empf-input { padding-left: 2.2rem; background-position: left 0.85rem center; }
+.empf-input option { background: var(--bg-panel); color: var(--text-primary); }
+
+.empf-hint { font-size: 0.74rem; color: var(--text-muted); }
+.empf-hint-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--accent-teal);
+}
+
+.empf-status-toggle {
+  display: inline-flex;
+  background: rgba(var(--color-black-rgb), 0.06);
+  border: 1px solid var(--border-glass);
+  border-radius: 11px;
+  padding: 3px;
+  gap: 3px;
+}
+.empf-status-toggle button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.empf-status-toggle button.active {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-teal));
+  color: var(--bg-dark);
+}
+
+.empf-photo-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.empf-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 16px;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(0, 196, 204, 0.16), rgba(0, 153, 158, 0.08));
+  border: 1px solid var(--border-glass);
+  color: var(--accent-cyan);
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.empf-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.empf-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: 11px;
+  border: 1px dashed var(--border-glass);
+  background: rgba(var(--color-black-rgb), 0.04);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.empf-file:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.empf-file input { display: none; }
+
+.emp-empnum {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 900px) {
+  .empf-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .empf-fields { grid-template-columns: 1fr; }
+  .empf-topbar-actions { width: 100%; }
+  .empf-topbar-actions .btn-primary,
+  .empf-topbar-actions .btn-outline { flex: 1; justify-content: center; }
+}
+
+/* =========================================================================
+   Dashboard chart empty states (shown instead of fabricated numbers)
+   ========================================================================= */
+.chart-empty {
+  height: 100%;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+.chart-empty svg { opacity: 0.5; }
+.chart-empty span { font-size: 0.85rem; }
+
+/* =========================================================================
+   Leads (CRM) locked-preview skeletons — no fabricated lead data
+   ========================================================================= */
+.crm-skel {
+  position: relative;
+  overflow: hidden;
+  background: rgba(var(--color-white-rgb), 0.08);
+  border-radius: 6px;
+}
+.crm-skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(var(--color-white-rgb), 0.06), transparent);
+  animation: crm-shimmer 1.6s infinite;
+}
+@keyframes crm-shimmer { 100% { transform: translateX(100%); } }
+.crm-skel-avatar { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; }
+.crm-skel-line { height: 10px; }
+.crm-skel-lines { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.crm-skel-card .crm-skel-line { margin-top: 10px; }
+.w-45 { width: 45%; }
+.w-50 { width: 50%; }
+.w-60 { width: 60%; }
+.w-70 { width: 70%; }
+.w-80 { width: 80%; }
+.w-90 { width: 90%; }

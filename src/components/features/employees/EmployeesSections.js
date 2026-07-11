@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
-  Plus, Upload, Search, MoreVertical, Edit2, Trash2, X, Check, Mail, Phone, Hash, Loader2,
+  Plus, Upload, Search, MoreVertical, Edit2, Trash2, X, Check,
 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
 import { useAuth } from '@/shared/auth/AuthProvider';
@@ -112,6 +111,7 @@ export function EmployeesTable({ t, employees, openMenuId, setOpenMenuId, onEdit
           <tr>
             <th>{t('colName')}</th>
             <th>{t('colJobTitle')}</th>
+            <th>{t('colEmployeeNumber')}</th>
             <th>{t('colDepartment')}</th>
             <th>{t('branch')}</th>
             <th>{t('colCardStatus')}</th>
@@ -120,7 +120,7 @@ export function EmployeesTable({ t, employees, openMenuId, setOpenMenuId, onEdit
         </thead>
         <tbody>
           {employees.length === 0 ? (
-            <tr><td colSpan="6" className="emp-empty">{t('noResults')}</td></tr>
+            <tr><td colSpan="7" className="emp-empty">{t('noResults')}</td></tr>
           ) : (
             employees.map((employee) => {
               const initials = getInitials(employee.name);
@@ -138,7 +138,8 @@ export function EmployeesTable({ t, employees, openMenuId, setOpenMenuId, onEdit
                       </div>
                     </div>
                   </td>
-                  <td className="emp-job">{employee.employee_number || '—'}</td>
+                  <td className="emp-job">{employee.position || '—'}</td>
+                  <td className="emp-empnum">{employee.employee_number || '—'}</td>
                   <td>{employee.department?.name || '—'}</td>
                   <td>{employee.branch?.name || '—'}</td>
                   <td>
@@ -192,191 +193,8 @@ export function DeleteEmployeeDialog({ t, isOpen, onClose, onConfirm, isPending 
   );
 }
 
-export function EmployeeFormDialog({
-  t,
-  isOpen,
-  onClose,
-  initial,
-  companies,
-  branches,
-  departments,
-  onSubmit,
-  isPending,
-}) {
-  const tCommon = useTranslations('Common');
-  const isEdit = Boolean(initial?.id);
-  const [companyId, setCompanyId] = useState('');
-  const [branchId, setBranchId] = useState('');
-  const [departmentId, setDepartmentId] = useState('');
-  const [userId, setUserId] = useState('');
-  const [employeeNumber, setEmployeeNumber] = useState('');
-  const [iqamaNumber, setIqamaNumber] = useState('');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [status, setStatus] = useState('active');
-  const [logo, setLogo] = useState(null);
-  const [logoPreview, setLogoPreview] = useState(null);
-  const fileRef = useRef(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const initialCompanyId = initial?.company_id
-      ? String(initial.company_id)
-      : initial?.company?.id
-      ? String(initial.company.id)
-      : '';
-    // For owners (and any user who scopes to a single company) pre-pick it so
-    // they aren't blocked by the native "please select an item in the list"
-    // validation on the required <select>.
-    setCompanyId(
-      initialCompanyId || (companies.length === 1 ? String(companies[0].id) : '')
-    );
-    setBranchId(initial?.branch_id ? String(initial.branch_id) : initial?.branch?.id ? String(initial.branch.id) : '');
-    setDepartmentId(initial?.department_id ? String(initial.department_id) : initial?.department?.id ? String(initial.department.id) : '');
-    setUserId(initial?.user_id ? String(initial.user_id) : initial?.user?.id ? String(initial.user.id) : '');
-    setEmployeeNumber(initial?.employee_number || '');
-    setIqamaNumber(initial?.iqama_number || '');
-    setName(initial?.name || '');
-    setEmail(initial?.email || '');
-    setPhone(initial?.phone || '');
-    setStatus(initial?.status || 'active');
-    setLogo(null);
-    setLogoPreview(initial?.logo || null);
-  }, [isOpen, initial, companies]);
-
-  const filteredBranches = companyId
-    ? branches.filter((b) => String(b.company_id) === String(companyId))
-    : branches;
-  const filteredDepartments = companyId
-    ? departments.filter((d) => String(d.company_id) === String(companyId))
-    : departments;
-
-  const handleFile = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLogo(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => setLogoPreview(ev.target?.result || null);
-    reader.readAsDataURL(file);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const payload = {
-      company_id: Number(companyId),
-      branch_id: Number(branchId),
-      department_id: departmentId ? Number(departmentId) : undefined,
-      user_id: Number(userId),
-      employee_number: employeeNumber,
-      iqama_number: iqamaNumber, // required (DB: UNIQUE NOT NULL)
-      name,
-      email, // required (DB: UNIQUE NOT NULL)
-      phone: phone || undefined,
-      status,
-    };
-    if (logo) payload.logo = logo;
-    onSubmit(payload);
-  };
-
-  return (
-    <Dialog isOpen={isOpen} onClose={onClose} panelClassName="modal-box glass-panel modal-form">
-      <div className="modal-header">
-        <h3 className="modal-title">{isEdit ? t('editEmployee') : t('addEmployee')}</h3>
-        <button className="modal-close" onClick={onClose} type="button"><X size={18} /></button>
-      </div>
-      <form onSubmit={handleSubmit}>
-        {companies.length > 1 && (
-          <div className="modal-field">
-            <label>{t('company')}</label>
-            <select className="modal-input" required value={companyId} onChange={(e) => { setCompanyId(e.target.value); setBranchId(''); setDepartmentId(''); }}>
-              <option value="">{t('filterByCompany')}</option>
-              {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-        )}
-        <div className="modal-field">
-          <label>{t('branch')}</label>
-          <select className="modal-input" required value={branchId} onChange={(e) => setBranchId(e.target.value)}>
-            <option value="">{t('filterByBranch')}</option>
-            {filteredBranches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-          </select>
-        </div>
-        <div className="modal-field">
-          <label>{t('department')}</label>
-          <select className="modal-input" value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}>
-            <option value="">—</option>
-            {filteredDepartments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
-        </div>
-        <div className="modal-field">
-          <label><Hash size={13} style={{ display: 'inline', marginInlineEnd: 4 }} />{t('user')}</label>
-          <input className="modal-input" type="number" required value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="5" />
-          <small style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{t('userIdHint')}</small>
-        </div>
-        <div className="modal-field">
-          <label>{t('employeeNumber')}</label>
-          <input className="modal-input" required value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="EMP-001" />
-        </div>
-        <div className="modal-field">
-          <label>{t('iqamaNumber')}</label>
-          <input className="modal-input" required value={iqamaNumber} onChange={(e) => setIqamaNumber(e.target.value)} />
-        </div>
-        <div className="modal-field">
-          <label>{t('name')}</label>
-          <input className="modal-input" required value={name} onChange={(e) => setName(e.target.value)} />
-        </div>
-        <div className="modal-field">
-          <label><Mail size={13} style={{ display: 'inline', marginInlineEnd: 4 }} />{t('email')}</label>
-          <input className="modal-input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-        </div>
-        <div className="modal-field">
-          <label><Phone size={13} style={{ display: 'inline', marginInlineEnd: 4 }} />{t('phone')}</label>
-          <input className="modal-input" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </div>
-        <div className="modal-field">
-          <label>{t('status')}</label>
-          <select className="modal-input" value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="active">{t('status_active')}</option>
-            <option value="inactive">{t('status_inactive')}</option>
-          </select>
-        </div>
-        <div className="modal-field">
-          <label>{t('logo')}</label>
-          <label className="file-upload">
-            <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png" onChange={handleFile} />
-            <div className="file-upload-icon"><Upload size={20} /></div>
-            <div className="file-upload-text">
-              <span>{logo?.name || (logoPreview ? 'Replace photo' : 'Upload photo')}</span>
-              <small>{t('uploadHint')}</small>
-            </div>
-          </label>
-          {logoPreview && (
-            <div className="file-preview">
-              <img src={logoPreview} alt="Preview" />
-            </div>
-          )}
-        </div>
-        <div className="modal-actions">
-          <button type="button" className="btn-outline" onClick={onClose}>{tCommon('cancel')}</button>
-          <button type="submit" className="btn-primary" disabled={isPending}>
-            {isPending ? (
-              <Loader2 size={14} className="spinner" />
-            ) : isEdit ? (
-              <Check size={14} />
-            ) : (
-              <Plus size={14} />
-            )}
-            <span>
-              {isPending
-                ? tCommon('saving')
-                : isEdit
-                ? t('saveChanges')
-                : t('addEmployee')}
-            </span>
-          </button>
-        </div>
-      </form>
-    </Dialog>
-  );
-}
+// NOTE: the old EmployeeFormDialog modal was removed — creating and editing
+// employees now happens on the dedicated full-page screen at /employees/new
+// (see components/features/employees/EmployeeForm.js). The modal couldn't fit
+// all the required fields (it was even missing the backend-required `position`)
+// and the client asked for a proper screen instead of a popup.

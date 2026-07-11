@@ -8,32 +8,28 @@ import {
   EmployeesFilters,
   EmployeesTable,
   DeleteEmployeeDialog,
-  EmployeeFormDialog,
 } from '@/components/features/employees/EmployeesSections';
 import {
   useEmployees,
-  useCreateEmployee,
-  useUpdateEmployee,
   useDeleteEmployee,
   useCompaniesForCurrentUser,
   useBranches,
-  useDepartments,
 } from '@/shared/api/hooks';
 import { useRole } from '@/shared/auth/useRole';
+import { useRouter } from '@/i18n/routing';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 
 export default function EmployeesPage() {
   const t = useTranslations('Employees');
   const tCommon = useTranslations('Common');
+  const router = useRouter();
 
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [companyId, setCompanyId] = useState('');
   const [branchId, setBranchId] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
@@ -51,15 +47,11 @@ export default function EmployeesPage() {
   const { data, isLoading, isError, error, refetch } = useEmployees(queryParams);
   const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });
   const { data: branchesData } = useBranches({ per_page: 200 });
-  const { data: departmentsData } = useDepartments({ per_page: 200 });
 
-  const createMutation = useCreateEmployee();
-  const updateMutation = useUpdateEmployee();
   const deleteMutation = useDeleteEmployee();
 
   const companies = Array.isArray(companiesData?.data) ? companiesData.data : [];
   const branches = Array.isArray(branchesData?.data) ? branchesData.data : [];
-  const departments = Array.isArray(departmentsData?.data) ? departmentsData.data : [];
 
   const filteredEmployees = useMemo(() => {
     const allEmployees = Array.isArray(data?.data) ? data.data : [];
@@ -68,6 +60,7 @@ export default function EmployeesPage() {
     return allEmployees.filter((emp) => (
       emp.name?.toLowerCase().includes(q) ||
       emp.email?.toLowerCase().includes(q) ||
+      emp.position?.toLowerCase().includes(q) ||
       emp.employee_number?.toLowerCase().includes(q)
     ));
   }, [data, searchQuery]);
@@ -75,22 +68,6 @@ export default function EmployeesPage() {
   const meta = data
     ? { current_page: data.current_page, last_page: data.last_page, from: data.from, to: data.to, total: data.total }
     : null;
-
-  const handleSubmit = async (payload) => {
-    try {
-      if (editTarget?.id) {
-        await updateMutation.mutateAsync({ id: editTarget.id, payload });
-        toast.success(t('updateSuccess'));
-      } else {
-        await createMutation.mutateAsync(payload);
-        toast.success(t('createSuccess'));
-      }
-      setShowForm(false);
-      setEditTarget(null);
-    } catch (err) {
-      toast.error(getApiErrorMessage(err));
-    }
-  };
 
   const handleDelete = async () => {
     if (!deleteTarget?.id) return;
@@ -110,7 +87,7 @@ export default function EmployeesPage() {
         t={t}
         onSendInvitations={() => toast.success(t('invitationsSent'))}
         onBulkUpload={() => toast(t('bulkUploadHint'))}
-        onAddEmployee={() => { setEditTarget(null); setShowForm(true); }}
+        onAddEmployee={() => router.push('/employees/new')}
       />
 
       <EmployeesFilters
@@ -143,7 +120,7 @@ export default function EmployeesPage() {
           employees={filteredEmployees}
           openMenuId={openMenuId}
           setOpenMenuId={setOpenMenuId}
-          onEdit={(emp) => { setEditTarget(emp); setShowForm(true); setOpenMenuId(null); }}
+          onEdit={(emp) => { router.push(`/employees/new?id=${emp.id}`); setOpenMenuId(null); }}
           onDelete={(emp) => { setDeleteTarget(emp); setOpenMenuId(null); }}
         />
       )}
@@ -156,18 +133,6 @@ export default function EmployeesPage() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         isPending={deleteMutation.isPending}
-      />
-
-      <EmployeeFormDialog
-        t={t}
-        isOpen={showForm}
-        onClose={() => { setShowForm(false); setEditTarget(null); }}
-        initial={editTarget}
-        companies={companies}
-        branches={branches}
-        departments={departments}
-        onSubmit={handleSubmit}
-        isPending={createMutation.isPending || updateMutation.isPending}
       />
     </div>
   );

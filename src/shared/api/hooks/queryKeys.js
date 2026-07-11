@@ -2,6 +2,9 @@ export const queryKeys = {
   auth: {
     me: ['auth', 'me'],
   },
+  overview: {
+    all: ['overview'],
+  },
   companies: {
     all: ['companies'],
     list: (params) => ['companies', 'list', params],

@@ -10,3 +10,4 @@ export { publicService } from './public.service';
 export { businessCardsService } from './business-cards.service';
 export { businessCardTemplatesService } from './business-card-templates.service';
 export { rolesService } from './roles.service';
+export { overviewService } from './overview.service';

@@ -1,16 +1,11 @@
 "use client";
-import { useTranslations } from 'next-intl';
-import { useLocale } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   Users,
   CreditCard,
   ScanLine,
-  TrendingUp,
-  Activity,
   Target,
-  CalendarCheck2,
   Building2,
-  RefreshCcw,
   MapPin,
   Briefcase,
   Folder,
@@ -19,9 +14,10 @@ import {
   DashboardMetricsGrid,
   DashboardEngagementSection,
   DashboardAnalyticsGrid,
-  DashboardPipelineSection,
+  DashboardCardStatusSection,
 } from '@/components/features/dashboard/DashboardSections';
 import {
+  useOverview,
   useCompanies,
   useBranches,
   useDepartments,
@@ -29,139 +25,108 @@ import {
   useProjects,
   useEmployeeProjects,
 } from '@/shared/api/hooks';
+import { useRole } from '@/shared/auth/useRole';
 
 const formatNumber = (n) => {
   if (n === null || n === undefined) return '—';
   return new Intl.NumberFormat('en-US').format(n);
 };
 
+const SOURCE_COLORS = { QR: '#66FCF1', NFC: '#8E7DF2', LINK: '#FFC857' };
+const STATUS_COLORS = {
+  draft: '#8892a0',
+  submitted: '#FFC857',
+  approved: '#45A29E',
+  published: '#66BB6A',
+  rejected: '#EF5B71',
+};
+
+// Locale-aware "x minutes ago" for real interaction timestamps.
+function useRelativeTime(locale) {
+  const rtf = new Intl.RelativeTimeFormat(locale === 'ar' ? 'ar' : 'en', { numeric: 'auto' });
+  return (iso) => {
+    if (!iso) return '';
+    const then = new Date(iso).getTime();
+    if (Number.isNaN(then)) return '';
+    const diffSec = Math.round((then - Date.now()) / 1000);
+    const abs = Math.abs(diffSec);
+    if (abs < 60) return rtf.format(Math.round(diffSec), 'second');
+    if (abs < 3600) return rtf.format(Math.round(diffSec / 60), 'minute');
+    if (abs < 86400) return rtf.format(Math.round(diffSec / 3600), 'hour');
+    return rtf.format(Math.round(diffSec / 86400), 'day');
+  };
+}
+
 export default function Dashboard() {
   const t = useTranslations('Dashboard');
   const tSidebar = useTranslations('Sidebar');
-  const tAct = useTranslations('Activity');
   const locale = useLocale();
+  const { isSuperadmin } = useRole();
+  const relTime = useRelativeTime(locale);
 
-  const { data: companiesData } = useCompanies({ per_page: 1 });
+  // Real analytics (cards + interactions). Undefined until loaded, or if the
+  // deployed backend doesn't expose the endpoint yet — everything below then
+  // degrades to entity counts + empty states, never fabricated numbers.
+  const { data: overview } = useOverview();
+
+  // Entity counts come from the tenancy-scoped list endpoints (already real).
+  const { data: companiesData } = useCompanies({ per_page: 1 }, { enabled: isSuperadmin });
   const { data: branchesData } = useBranches({ per_page: 1 });
   const { data: departmentsData } = useDepartments({ per_page: 1 });
   const { data: employeesData } = useEmployees({ per_page: 1 });
   const { data: projectsData } = useProjects({ per_page: 1 });
   const { data: assignmentsData } = useEmployeeProjects({ per_page: 1 });
 
+  const activeCards = overview?.cards?.active ?? overview?.cards?.published;
+  const totalScans = overview?.interactions?.scans;
+
   const metrics = [
-    {
-      title: tSidebar('companies'),
-      value: formatNumber(companiesData?.total),
-      trend: '+0%',
-      trendUp: true,
-      icon: <Building2 size={24} />,
-      href: '/companies',
-    },
-    {
-      title: tSidebar('branches'),
-      value: formatNumber(branchesData?.total),
-      trend: '+0%',
-      trendUp: true,
-      icon: <MapPin size={24} />,
-      href: '/branches',
-    },
-    {
-      title: tSidebar('departments'),
-      value: formatNumber(departmentsData?.total),
-      trend: '+0%',
-      trendUp: true,
-      icon: <Briefcase size={24} />,
-      href: '/departments',
-    },
-    {
-      title: t('totalEmployees'),
-      value: formatNumber(employeesData?.total),
-      trend: '+0%',
-      trendUp: true,
-      icon: <Users size={24} />,
-      href: '/employees',
-    },
-    {
-      title: tSidebar('projects'),
-      value: formatNumber(projectsData?.total),
-      trend: '+0%',
-      trendUp: true,
-      icon: <Folder size={24} />,
-      href: '/projects',
-    },
-    {
-      title: tSidebar('assignments'),
-      value: formatNumber(assignmentsData?.total),
-      trend: '+0%',
-      trendUp: true,
-      icon: <Target size={24} />,
-      href: '/assignments',
-    },
-    {
-      title: t('activeSmartCards'),
-      value: '195',
-      trend: '+5%',
-      trendUp: true,
-      icon: <CreditCard size={24} />,
-      href: '/templates',
-    },
-    {
-      title: t('totalCardScans'),
-      value: '8,432',
-      trend: '+24%',
-      trendUp: true,
-      icon: <ScanLine size={24} />,
-      href: null,
-    },
+    ...(isSuperadmin
+      ? [{ title: tSidebar('companies'), value: formatNumber(companiesData?.total), icon: <Building2 size={24} />, href: '/companies' }]
+      : []),
+    { title: tSidebar('branches'), value: formatNumber(branchesData?.total), icon: <MapPin size={24} />, href: '/branches' },
+    { title: tSidebar('departments'), value: formatNumber(departmentsData?.total), icon: <Briefcase size={24} />, href: '/departments' },
+    { title: t('totalEmployees'), value: formatNumber(employeesData?.total), icon: <Users size={24} />, href: '/employees' },
+    { title: tSidebar('projects'), value: formatNumber(projectsData?.total), icon: <Folder size={24} />, href: '/projects' },
+    { title: tSidebar('assignments'), value: formatNumber(assignmentsData?.total), icon: <Target size={24} />, href: '/assignments' },
+    { title: t('activeSmartCards'), value: formatNumber(activeCards), icon: <CreditCard size={24} />, href: '/business-cards' },
+    { title: t('totalCardScans'), value: formatNumber(totalScans), icon: <ScanLine size={24} />, href: '/business-cards' },
   ];
 
-  const chartData = [
-    { name: t('monthJan'), scans: 1200, leads: 300 },
-    { name: t('monthFeb'), scans: 2100, leads: 450 },
-    { name: t('monthMar'), scans: 1800, leads: 400 },
-    { name: t('monthApr'), scans: 2800, leads: 600 },
-    { name: t('monthMay'), scans: 3400, leads: 850 },
-    { name: t('monthJun'), scans: 4200, leads: 1100 },
-    { name: t('monthJul'), scans: 5100, leads: 1204 },
-  ];
+  // Engagement time-series (real months from the backend).
+  const chartData = overview?.monthly ?? [];
+  const hasEngagement = chartData.some((m) => (m.scans || 0) + (m.views || 0) > 0);
 
-  const pipelineData = [
-    { name: t('monthJan'), pipeline: 34, won: 11 },
-    { name: t('monthFeb'), pipeline: 38, won: 13 },
-    { name: t('monthMar'), pipeline: 36, won: 14 },
-    { name: t('monthApr'), pipeline: 42, won: 15 },
-    { name: t('monthMay'), pipeline: 49, won: 17 },
-    { name: t('monthJun'), pipeline: 53, won: 18 },
-    { name: t('monthJul'), pipeline: 57, won: 21 },
-  ];
+  // Regions = published cards per branch.
+  const regionData = (overview?.regions ?? []).filter((r) => r.value > 0);
+  const hasRegions = regionData.length > 0;
 
-  const regionData = [
-    { region: t('riyadh'), deals: 112 },
-    { region: t('jeddah'), deals: 84 },
-    { region: t('dammam'), deals: 56 },
-    { region: t('khobar'), deals: 42 },
-  ];
+  // Scan source split (real counts).
+  const srcMap = overview?.sources ?? {};
+  const sourceData = ['QR', 'NFC', 'LINK']
+    .map((k) => ({ name: t(`source_${k}`), key: k, value: srcMap[k] || 0, color: SOURCE_COLORS[k] }))
+    .filter((s) => s.value > 0);
+  const hasSources = sourceData.length > 0;
 
-  const sourceData = [
-    { name: t('sourceScan'), value: 42, color: '#66FCF1' },
-    { name: t('sourceReferral'), value: 27, color: '#45A29E' },
-    { name: t('sourceCampaign'), value: 19, color: '#FFC857' },
-    { name: t('sourcePartner'), value: 12, color: '#8E7DF2' },
-  ];
+  // Card status breakdown (replaces the old fake CRM pipeline chart).
+  const statusMap = overview?.card_status ?? {};
+  const statusData = ['draft', 'submitted', 'approved', 'published', 'rejected']
+    .map((k) => ({ key: k, label: t(`cardStatus_${k}`), value: statusMap[k] || 0, color: STATUS_COLORS[k] }));
+  const hasStatus = (overview?.cards?.total ?? 0) > 0;
 
-  const recentActivity = [
-    { id: 1, text: tAct('updateCard'), time: tAct('minsAgo', { count: 2 }), type: 'update', href: '/templates' },
-    { id: 2, text: tAct('newLead'), time: tAct('minsAgo', { count: 15 }), type: 'lead', href: null },
-    { id: 3, text: tAct('marketingRequest'), time: tAct('hourAgo', { count: 1 }), type: 'request', href: '/templates' },
-    { id: 4, text: tAct('sharedAppleWallet'), time: tAct('hoursAgo', { count: 3 }), type: 'share', href: '/templates' },
-  ];
+  // Recent activity from real interactions.
+  const recentActivity = (overview?.recent ?? []).map((r) => ({
+    source: r.source,
+    text: t('activityEvent', { name: r.name, action: t(`action_${r.type === 'view' ? 'viewed' : 'scanned'}`) }),
+    time: relTime(r.at),
+  }));
 
   return (
     <div className="dashboard-container">
       <DashboardMetricsGrid metrics={metrics} />
-      <DashboardEngagementSection chartData={chartData} recentActivity={recentActivity} t={t} tAct={tAct} locale={locale} />
-      <DashboardAnalyticsGrid regionData={regionData} sourceData={sourceData} t={t} locale={locale} />
-      <DashboardPipelineSection pipelineData={pipelineData} t={t} />
+      <DashboardEngagementSection chartData={chartData} hasEngagement={hasEngagement} recentActivity={recentActivity} t={t} locale={locale} />
+      <DashboardAnalyticsGrid regionData={regionData} sourceData={sourceData} hasRegions={hasRegions} hasSources={hasSources} t={t} locale={locale} />
+      <DashboardCardStatusSection statusData={statusData} hasStatus={hasStatus} t={t} />
     </div>
   );
 }

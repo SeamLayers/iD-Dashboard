@@ -9,4 +9,5 @@ export * from './useNotifications';
 export * from './useBusinessCards';
 export * from './useBusinessCardTemplates';
 export * from './useRoles';
+export * from './useOverview';
 export { queryKeys } from './queryKeys';
