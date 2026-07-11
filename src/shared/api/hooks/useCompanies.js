@@ -14,12 +14,16 @@ export const useCompanies = (params = {}, { enabled = true } = {}) => {
   });
 };
 
-export const useMyCompany = () => {
+export const useMyCompany = ({ enabled = true } = {}) => {
   const { isAuthenticated } = useAuth();
   return useQuery({
     queryKey: queryKeys.companies.mine,
     queryFn: () => companiesService.getMine(),
-    enabled: isAuthenticated,
+    // `/dashboard/owner/company` is guarded by the Spatie `role:owner`
+    // middleware, which 403s a superadmin (superadmin bypasses Gate/permission
+    // checks but NOT role middleware). Callers pass enabled:false for
+    // non-owners so the request is never fired.
+    enabled: isAuthenticated && enabled,
   });
 };
 

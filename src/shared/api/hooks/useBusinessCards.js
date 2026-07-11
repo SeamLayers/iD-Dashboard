@@ -81,6 +81,22 @@ export const useDeactivateBusinessCard = () => {
   });
 };
 
+export const useApproveBusinessCard = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => businessCardsService.approve(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.businessCards.all }),
+  });
+};
+
+export const useRejectBusinessCard = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }) => businessCardsService.reject(id, reason),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.businessCards.all }),
+  });
+};
+
 export const useBusinessCardAnalytics = (id, options = {}) => {
   const { isAuthenticated } = useAuth();
   return useQuery({

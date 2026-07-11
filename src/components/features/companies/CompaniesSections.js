@@ -144,6 +144,7 @@ export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPen
               type="file"
               accept="image/jpeg,image/jpg,image/png,image/webp"
               onChange={handleFile}
+              required={!isEdit}
             />
             <div className="file-upload-icon"><Upload size={20} /></div>
             <div className="file-upload-text">

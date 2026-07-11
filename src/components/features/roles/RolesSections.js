@@ -59,7 +59,7 @@ function actionFromPermission(perm) {
   return idx === -1 ? perm : perm.slice(idx + 1);
 }
 
-export function RoleCard({ t, role, onSelect, onDelete }) {
+export function RoleCard({ t, role, onSelect, onDelete, canDelete = true }) {
   const permissionsCount = Array.isArray(role.permissions) ? role.permissions.length : 0;
   const usersCount = Array.isArray(role.employees) ? role.employees.length : 0;
   return (
@@ -80,9 +80,11 @@ export function RoleCard({ t, role, onSelect, onDelete }) {
           <Pencil size={14} />
           <span>{t('editRole')}</span>
         </button>
-        <button className="btn-icon danger" onClick={(e) => { e.stopPropagation(); onDelete(role); }} aria-label="Delete">
-          <Trash2 size={16} />
-        </button>
+        {canDelete && (
+          <button className="btn-icon danger" onClick={(e) => { e.stopPropagation(); onDelete(role); }} aria-label="Delete">
+            <Trash2 size={16} />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -216,6 +218,7 @@ export function RoleDetail({
   onAssignUsers,
   isUpdatePending,
   isAssignPending,
+  canUpdate = true,
 }) {
   const tCommon = useTranslations('Common');
   const [activeTab, setActiveTab] = useState('permissions');
@@ -319,12 +322,14 @@ export function RoleDetail({
               );
             })}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button className="btn-primary" onClick={handleSave} disabled={isUpdatePending}>
-              <Check size={14} />
-              <span>{t('savePermissions')}</span>
-            </button>
-          </div>
+          {canUpdate && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="btn-primary" onClick={handleSave} disabled={isUpdatePending}>
+                <Check size={14} />
+                <span>{t('savePermissions')}</span>
+              </button>
+            </div>
+          )}
         </>
       )}
 
@@ -335,13 +340,14 @@ export function RoleDetail({
           users={users}
           onAssignUsers={onAssignUsers}
           isAssignPending={isAssignPending}
+          canManage={canUpdate}
         />
       )}
     </div>
   );
 }
 
-function RoleUsersTab({ t, users, onAssignUsers, isAssignPending }) {
+function RoleUsersTab({ t, users, onAssignUsers, isAssignPending, canManage = true }) {
   const [showAdd, setShowAdd] = useState(false);
   const [currentIds, setCurrentIds] = useState(users.map((u) => u.id));
 
@@ -359,10 +365,12 @@ function RoleUsersTab({ t, users, onAssignUsers, isAssignPending }) {
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
         <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t('usersCount', { count: users.length })}</span>
-        <button className="btn-primary" onClick={() => setShowAdd(true)}>
-          <Users size={14} />
-          <span>{t('addUsers')}</span>
-        </button>
+        {canManage && (
+          <button className="btn-primary" onClick={() => setShowAdd(true)}>
+            <Users size={14} />
+            <span>{t('addUsers')}</span>
+          </button>
+        )}
       </div>
 
       {users.length === 0 ? (
@@ -378,9 +386,11 @@ function RoleUsersTab({ t, users, onAssignUsers, isAssignPending }) {
                 <span className="name">{u.name}</span>
                 <span className="email">{u.email}</span>
               </div>
-              <button className="btn-icon danger" onClick={() => handleRemove(u.id)} aria-label="Remove">
-                <UserMinus size={16} />
-              </button>
+              {canManage && (
+                <button className="btn-icon danger" onClick={() => handleRemove(u.id)} aria-label="Remove">
+                  <UserMinus size={16} />
+                </button>
+              )}
             </div>
           ))}
         </div>

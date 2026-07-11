@@ -27,15 +27,27 @@ export default function MyCompanyPage() {
   const t = useTranslations('MyCompany');
   const tCommon = useTranslations('Common');
   const { hasRole, isReady } = useAuth();
-  const { data, isLoading, isError, error, refetch } = useMyCompany();
+  const isOwner = hasRole('owner');
+  // This page is backed by the owner-only `/dashboard/owner/company` route, so
+  // it only fetches for owners. Superadmins would 403 there (role middleware
+  // doesn't honour the superadmin Gate bypass) — they use the Companies list.
+  const { data, isLoading, isError, error, refetch } = useMyCompany({
+    enabled: isReady && isOwner,
+  });
 
-  if (isReady && !hasRole('owner') && !hasRole('superadmin')) {
+  if (isReady && !isOwner) {
     return (
       <div className="page-wrap">
         <div className="entity-empty glass-panel">
           <ShieldAlert size={48} />
-          <h3>{tCommon('errorOccurred')}</h3>
-          <p>{t('forbidden')}</p>
+          <h3>{t('title')}</h3>
+          <p>{hasRole('superadmin') ? t('superadminHint') : t('forbidden')}</p>
+          {hasRole('superadmin') && (
+            <Link href="/companies" className="btn-primary" style={{ marginTop: '1rem' }}>
+              <Building2 size={16} />
+              <span>{t('goToCompanies')}</span>
+            </Link>
+          )}
         </div>
       </div>
     );

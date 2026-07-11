@@ -6,7 +6,6 @@ import { routing } from '@/i18n/routing';
 import ThemeProvider from "@/components/ThemeProvider";
 import { ReactQueryProvider } from "@/shared/providers/ReactQueryProvider";
 import { AuthProvider } from "@/shared/auth/AuthProvider";
-import { DemoStoreProvider } from "@/components/DemoStoreProvider";
 import AppShell from "@/components/AppShell";
 import { Toaster } from 'react-hot-toast';
 
@@ -41,7 +40,6 @@ export default async function RootLayout({ children, params }) {
           <NextIntlClientProvider messages={messages}>
             <ReactQueryProvider>
               <AuthProvider>
-                <DemoStoreProvider>
                 <Toaster
                   position="top-center"
                   toastOptions={{
@@ -55,7 +53,6 @@ export default async function RootLayout({ children, params }) {
                   }}
                 />
                 <AppShell locale={locale}>{children}</AppShell>
-                </DemoStoreProvider>
               </AuthProvider>
             </ReactQueryProvider>
           </NextIntlClientProvider>

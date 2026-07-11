@@ -13,6 +13,7 @@ import {
   useAssignUsersToRole,
 } from '@/shared/api/hooks';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
+import { useAuth } from '@/shared/auth/AuthProvider';
 import {
   RoleCard,
   CreateRoleDialog,
@@ -23,6 +24,14 @@ import {
 export default function RolesPage() {
   const t = useTranslations('Roles');
   const tCommon = useTranslations('Common');
+  const { hasPermission } = useAuth();
+
+  // Roles is visible to anyone with role.view (owners included), but write
+  // actions require the matching permission — owners only have role.view, so
+  // hide controls they'd get a 403 from instead of showing dead buttons.
+  const canCreate = hasPermission('role.create');
+  const canUpdate = hasPermission('role.update');
+  const canDelete = hasPermission('role.delete');
 
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -106,6 +115,7 @@ export default function RolesPage() {
           onAssignUsers={handleAssignUsers}
           isUpdatePending={updateMutation.isPending}
           isAssignPending={assignMutation.isPending}
+          canUpdate={canUpdate}
         />
       </div>
     );
@@ -120,12 +130,14 @@ export default function RolesPage() {
           <h1 className="page-title text-gradient">{t('title')}</h1>
           <p className="page-subtitle">{t('subtitle')}</p>
         </div>
-        <div className="page-actions">
-          <button className="btn-primary" onClick={() => setShowCreate(true)}>
-            <Plus size={16} />
-            <span>{t('addRole')}</span>
-          </button>
-        </div>
+        {canCreate && (
+          <div className="page-actions">
+            <button className="btn-primary" onClick={() => setShowCreate(true)}>
+              <Plus size={16} />
+              <span>{t('addRole')}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {isLoading && <div className="entity-loading glass-panel">{tCommon('loading')}</div>}
@@ -155,6 +167,7 @@ export default function RolesPage() {
               role={role}
               onSelect={(r) => setSelectedRoleId(r.id)}
               onDelete={setDeleteTarget}
+              canDelete={canDelete}
             />
           ))}
         </div>

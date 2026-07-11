@@ -61,7 +61,7 @@ export function ApprovalsTable({ t, approvalRequests, onPreview }) {
   );
 }
 
-export function ApprovalPreviewDialog({ t, selectedRequest, isOpen, onClose, onApprove, onOpenReject, isFlipped, setIsFlipped }) {
+export function ApprovalPreviewDialog({ t, selectedRequest, isOpen, onClose, onApprove, onOpenReject, isFlipped, setIsFlipped, canApprove = true, canReject = true, isApproving = false }) {
   if (!selectedRequest) {
     return null;
   }
@@ -124,14 +124,22 @@ export function ApprovalPreviewDialog({ t, selectedRequest, isOpen, onClose, onA
           Review the customized layout submitted by <strong>{selectedRequest.name}</strong>. If everything aligns with company guidelines, approve to publish.
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <button className="btn-primary" style={{ justifyContent: 'center', padding: '0.8rem' }} onClick={() => onApprove(selectedRequest.id)}>
-            <Check size={18} /> <span>{t('approve')}</span>
-          </button>
-          <button className="btn-danger" style={{ justifyContent: 'center', padding: '0.8rem' }} onClick={onOpenReject}>
-            <X size={18} /> <span>{t('reject')}</span>
-          </button>
-        </div>
+        {canApprove || canReject ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {canApprove && (
+              <button className="btn-primary" style={{ justifyContent: 'center', padding: '0.8rem' }} onClick={() => onApprove(selectedRequest.id)} disabled={isApproving}>
+                <Check size={18} /> <span>{t('approve')}</span>
+              </button>
+            )}
+            {canReject && (
+              <button className="btn-danger" style={{ justifyContent: 'center', padding: '0.8rem' }} onClick={onOpenReject}>
+                <X size={18} /> <span>{t('reject')}</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <p className="modal-desc" style={{ fontStyle: 'italic' }}>{t('reviewerNote')}</p>
+        )}
       </div>
     </Dialog>
   );

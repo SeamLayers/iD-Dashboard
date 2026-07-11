@@ -41,6 +41,19 @@ export const businessCardsService = {
     return unwrap(res);
   },
 
+  // Review actions live under the mobile-scoped routes (role:superadmin|employee
+  // + business_card.approve/reject). Superadmins reviewing from the dashboard
+  // hit the same endpoints.
+  approve: async (id) => {
+    const res = await axiosInstance.post(`/mobile/business-cards/${id}/approve`);
+    return unwrap(res);
+  },
+
+  reject: async (id, rejection_reason) => {
+    const res = await axiosInstance.post(`/mobile/business-cards/${id}/reject`, { rejection_reason });
+    return unwrap(res);
+  },
+
   track: async (id, body = {}) => {
     const res = await axiosInstance.post(`/dashboard/business-cards/${id}/track`, body);
     return res.data;

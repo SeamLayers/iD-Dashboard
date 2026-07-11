@@ -454,7 +454,10 @@
     "confirmRejection": "Confirm Rejection",
     "status_pending": "Pending Setup",
     "status_review": "Pending Review",
-    "status_approved": "Approved"
+    "status_approved": "Approved",
+    "approveSuccess": "Card approved and published.",
+    "rejectSuccess": "Card sent back with your feedback.",
+    "reviewerNote": "Cards are reviewed and approved by the assigned reviewer in the mobile app. You can see what is pending here."
   },
   "Demo": {
     "demoReset": "Reset Demo",
@@ -537,7 +540,9 @@
       "phone": "Phone",
       "ownerName": "Owner name",
       "ownerEmail": "Owner email"
-    }
+    },
+    "superadminHint": "This page shows a single company owner’s workspace. As an administrator, manage every company from the Companies list.",
+    "goToCompanies": "Go to Companies"
   },
   "BusinessCards": {
     "title": "Business Cards",
