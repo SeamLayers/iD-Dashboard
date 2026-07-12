@@ -180,8 +180,6 @@
     "logo": "Company Logo",
     "uploadLogo": "Upload Logo",
     "uploadHint": "JPG, PNG, WEBP — max 2MB",
-    "userId": "Owner User ID",
-    "userIdHint": "ID of an existing user with type \"owner\"",
     "branches": "Branches",
     "employees": "Employees",
     "noCompanies": "No companies yet. Click \"Add Company\" to create one.",

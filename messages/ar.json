@@ -180,8 +180,6 @@
     "logo": "شعار الشركة",
     "uploadLogo": "ارفع الشعار",
     "uploadHint": "JPG, PNG, WEBP — الحد الأقصى 2 ميجابايت",
-    "userId": "معرف المستخدم المالك",
-    "userIdHint": "معرف مستخدم بنوع \"owner\"",
     "branches": "الفروع",
     "employees": "الموظفون",
     "noCompanies": "لا توجد شركات بعد. اضغط \"إضافة شركة\".",
