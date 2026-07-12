@@ -5055,3 +5055,6 @@ select.empf-input {
   font-size: 0.8rem; color: var(--text-muted);
 }
 .force-reset-signout:hover { color: var(--text-primary); }
+
+/* Transparent catcher so clicking outside the portaled row-actions menu closes it. */
+.kebab-backdrop { position: fixed; inset: 0; z-index: 999; background: transparent; }

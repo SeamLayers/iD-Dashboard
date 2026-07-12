@@ -2,9 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 import {
-  Plus, Upload, Search, MoreVertical, Edit2, Trash2, X, Check,
+  Plus, Upload, Search, Edit2, Trash2, X, Check,
 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
+import RowActionsMenu from '@/components/ui/RowActionsMenu';
 import { useAuth } from '@/shared/auth/AuthProvider';
 
 function getInitials(name = '') {
@@ -146,26 +147,19 @@ export function EmployeesTable({ t, employees, openMenuId, setOpenMenuId, onEdit
                     <span className={`emp-status-pill status-${status}`}>{t(`status_${status}`)}</span>
                   </td>
                   <td className="td-actions">
-                    <div className="kebab-wrapper">
-                      <button
-                        className="kebab-btn"
-                        onClick={() => setOpenMenuId(openMenuId === employee.id ? null : employee.id)}
-                      >
-                        <MoreVertical size={18} />
+                    <RowActionsMenu
+                      open={openMenuId === employee.id}
+                      onToggle={() => setOpenMenuId(openMenuId === employee.id ? null : employee.id)}
+                    >
+                      <button className="kebab-item" onClick={() => { setOpenMenuId(null); onEdit(employee); }}>
+                        <Edit2 size={14} /><span>{tCommon('edit')}</span>
                       </button>
-                      {openMenuId === employee.id && (
-                        <div className="kebab-menu glass-panel">
-                          <button className="kebab-item" onClick={() => onEdit(employee)}>
-                            <Edit2 size={14} /><span>{tCommon('edit')}</span>
-                          </button>
-                          {hasPermission('employee.delete') && (
-                            <button className="kebab-item kebab-danger" onClick={() => onDelete(employee)}>
-                              <Trash2 size={14} /><span>{tCommon('delete')}</span>
-                            </button>
-                          )}
-                        </div>
+                      {hasPermission('employee.delete') && (
+                        <button className="kebab-item kebab-danger" onClick={() => { setOpenMenuId(null); onDelete(employee); }}>
+                          <Trash2 size={14} /><span>{tCommon('delete')}</span>
+                        </button>
                       )}
-                    </div>
+                    </RowActionsMenu>
                   </td>
                 </tr>
               );

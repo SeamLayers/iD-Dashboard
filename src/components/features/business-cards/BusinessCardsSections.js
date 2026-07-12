@@ -7,7 +7,6 @@ import {
   Trash2,
   X,
   Plus,
-  MoreVertical,
   Send,
   CheckCircle2,
   PauseCircle,
@@ -17,6 +16,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
+import RowActionsMenu from '@/components/ui/RowActionsMenu';
 
 const STATUS_PILL_CLASS = {
   draft: 'pill pill-muted',
@@ -81,37 +81,30 @@ export function BusinessCardCard({
             <p className="entity-meta">{employeeNumber}</p>
           </div>
         </div>
-        <div className="kebab-wrapper">
-          <button
-            className="kebab-btn"
-            onClick={() => setOpenMenuId(isMenuOpen ? null : card.id)}
-            aria-label={tCommon('actions')}
-          >
-            <MoreVertical size={18} />
-          </button>
-          {isMenuOpen && (
-            <div className="kebab-menu glass-panel">
-              {canSubmit && (
-                <button className="kebab-item" onClick={() => { onSubmit(card); setOpenMenuId(null); }}>
-                  <Send size={14} /><span>{t('submitForReview')}</span>
-                </button>
-              )}
-              {canPublish && (
-                <button className="kebab-item" onClick={() => { onPublish(card); setOpenMenuId(null); }}>
-                  <CheckCircle2 size={14} /><span>{t('publish')}</span>
-                </button>
-              )}
-              {canDeactivate && (
-                <button className="kebab-item" onClick={() => { onDeactivate(card); setOpenMenuId(null); }}>
-                  <PauseCircle size={14} /><span>{t('deactivate')}</span>
-                </button>
-              )}
-              <button className="kebab-item kebab-danger" onClick={() => { onDelete(card); setOpenMenuId(null); }}>
-                <Trash2 size={14} /><span>{tCommon('delete')}</span>
-              </button>
-            </div>
+        <RowActionsMenu
+          open={isMenuOpen}
+          onToggle={() => setOpenMenuId(isMenuOpen ? null : card.id)}
+          ariaLabel={tCommon('actions')}
+        >
+          {canSubmit && (
+            <button className="kebab-item" onClick={() => { setOpenMenuId(null); onSubmit(card); }}>
+              <Send size={14} /><span>{t('submitForReview')}</span>
+            </button>
           )}
-        </div>
+          {canPublish && (
+            <button className="kebab-item" onClick={() => { setOpenMenuId(null); onPublish(card); }}>
+              <CheckCircle2 size={14} /><span>{t('publish')}</span>
+            </button>
+          )}
+          {canDeactivate && (
+            <button className="kebab-item" onClick={() => { setOpenMenuId(null); onDeactivate(card); }}>
+              <PauseCircle size={14} /><span>{t('deactivate')}</span>
+            </button>
+          )}
+          <button className="kebab-item kebab-danger" onClick={() => { setOpenMenuId(null); onDelete(card); }}>
+            <Trash2 size={14} /><span>{tCommon('delete')}</span>
+          </button>
+        </RowActionsMenu>
       </div>
 
       <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
