@@ -5,6 +5,7 @@ import { usePathname } from '@/i18n/routing';
 import Sidebar from './Sidebar';
 import TopNavbar from './TopNavbar';
 import RouteGuard from '@/shared/auth/RouteGuard';
+import ForcePasswordResetModal from './ForcePasswordResetModal';
 
 const AUTH_PAGES = ['/login', '/forgot-password', '/reset-password'];
 
@@ -30,6 +31,8 @@ export default function AppShell({ children, locale }) {
           {children}
         </div>
       </div>
+      {/* Forced first-login password reset (temp password → own password). */}
+      <ForcePasswordResetModal />
     </RouteGuard>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Building2, Mail, Phone, Pencil, Trash2, Upload, X, Plus, Check, Loader2 } from 'lucide-react';
+import { Building2, Mail, Phone, Pencil, Trash2, Upload, X, Plus, Check, Loader2, User, KeyRound, Hash, ImagePlus, Info } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
 
 function getInitials(name = '') {
@@ -71,7 +71,9 @@ export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPen
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [commercialRegister, setCommercialRegister] = useState('');
-  const [userId, setUserId] = useState('');
+  const [ownerName, setOwnerName] = useState('');
+  const [ownerEmail, setOwnerEmail] = useState('');
+  const [ownerPhone, setOwnerPhone] = useState('');
   const [logo, setLogo] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
 
@@ -81,7 +83,9 @@ export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPen
     setEmail(initial?.email || '');
     setPhone(initial?.phone || '');
     setCommercialRegister(initial?.commercial_register || '');
-    setUserId(initial?.owner?.id ? String(initial.owner.id) : (initial?.user_id ? String(initial.user_id) : ''));
+    setOwnerName('');
+    setOwnerEmail('');
+    setOwnerPhone('');
     setLogo(null);
     setLogoPreview(initial?.logo || null);
   }, [isOpen, initial]);
@@ -102,42 +106,91 @@ export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPen
       email,
       phone,
       commercial_register: commercialRegister || undefined,
-      user_id: userId || undefined,
     };
+    // The owner LOGIN account is provisioned server-side on create only — the
+    // superadmin no longer types a raw user id.
+    if (!isEdit) {
+      payload.owner_name = ownerName;
+      payload.owner_email = ownerEmail;
+      payload.owner_phone = ownerPhone || undefined;
+    }
     if (logo) payload.logo = logo;
     onSubmit(payload);
   };
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} panelClassName="modal-box glass-panel modal-form">
+    <Dialog isOpen={isOpen} onClose={onClose} panelClassName="modal-box glass-panel modal-form modal-wide">
       <div className="modal-header">
         <h3 className="modal-title">{isEdit ? t('editCompany') : t('addCompany')}</h3>
         <button className="modal-close" onClick={onClose} type="button"><X size={18} /></button>
       </div>
-      <form onSubmit={handleSubmit}>
-        <div className="modal-field">
-          <label>{t('name')}</label>
-          <input className="modal-input" required value={name} onChange={(e) => setName(e.target.value)} />
-        </div>
-        <div className="modal-field">
-          <label>{t('email')}</label>
-          <input className="modal-input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-        </div>
-        <div className="modal-field">
-          <label>{t('phone')}</label>
-          <input className="modal-input" required value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </div>
-        <div className="modal-field">
-          <label>{t('commercialRegister')}</label>
-          <input className="modal-input" value={commercialRegister} onChange={(e) => setCommercialRegister(e.target.value)} />
-        </div>
-        <div className="modal-field">
-          <label>{t('userId')}</label>
-          <input className="modal-input" type="number" required={!isEdit} value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="2" />
-          <small style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>{t('userIdHint')}</small>
-        </div>
-        <div className="modal-field">
-          <label>{t('logo')}</label>
+      <form onSubmit={handleSubmit} className="modal-sections">
+        {/* Company info */}
+        <section className="modal-section">
+          <div className="modal-section-head">
+            <div className="modal-section-icon"><Building2 size={16} /></div>
+            <div>
+              <h4>{t('sectionCompany')}</h4>
+              <span>{t('sectionCompanyHint')}</span>
+            </div>
+          </div>
+          <div className="modal-grid">
+            <div className="modal-field">
+              <label>{t('name')} <em>*</em></label>
+              <input className="modal-input" required value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="modal-field">
+              <label><Mail size={12} /> {t('email')} <em>*</em></label>
+              <input className="modal-input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div className="modal-field">
+              <label><Phone size={12} /> {t('phone')} <em>*</em></label>
+              <input className="modal-input" required value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" />
+            </div>
+            <div className="modal-field">
+              <label><Hash size={12} /> {t('commercialRegister')}</label>
+              <input className="modal-input" value={commercialRegister} onChange={(e) => setCommercialRegister(e.target.value)} />
+            </div>
+          </div>
+        </section>
+
+        {/* Owner account — create only */}
+        {!isEdit && (
+          <section className="modal-section">
+            <div className="modal-section-head">
+              <div className="modal-section-icon"><KeyRound size={16} /></div>
+              <div>
+                <h4>{t('sectionOwner')}</h4>
+                <span>{t('sectionOwnerHint')}</span>
+              </div>
+            </div>
+            <div className="modal-grid">
+              <div className="modal-field">
+                <label><User size={12} /> {t('ownerName')} <em>*</em></label>
+                <input className="modal-input" required value={ownerName} onChange={(e) => setOwnerName(e.target.value)} placeholder={t('ownerNamePlaceholder')} />
+              </div>
+              <div className="modal-field">
+                <label><Mail size={12} /> {t('ownerEmail')} <em>*</em></label>
+                <input className="modal-input" type="email" required value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} placeholder="owner@company.com" />
+              </div>
+              <div className="modal-field modal-field-full">
+                <label><Phone size={12} /> {t('ownerPhone')}</label>
+                <input className="modal-input" value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} placeholder="05xxxxxxxx" dir="ltr" />
+              </div>
+            </div>
+            <p className="modal-hint-info"><Info size={13} /> {t('ownerAccountNote')}</p>
+          </section>
+        )}
+
+        {/* Logo */}
+        <section className="modal-section">
+          <div className="modal-section-head">
+            <div className="modal-section-icon"><ImagePlus size={16} /></div>
+            <div>
+              <h4>{t('logo')}</h4>
+              <span>{t('uploadHint')}</span>
+            </div>
+          </div>
           <label className="file-upload">
             <input
               ref={fileInputRef}
@@ -148,17 +201,17 @@ export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPen
             />
             <div className="file-upload-icon"><Upload size={20} /></div>
             <div className="file-upload-text">
-              <span>{logo?.name || (logoPreview ? 'Replace logo' : t('uploadLogo'))}</span>
-              <small>{t('uploadHint')}</small>
+              <span>{logo?.name || (logoPreview ? t('replaceLogo') : t('uploadLogo'))}</span>
             </div>
           </label>
           {logoPreview && (
             <div className="file-preview">
               <img src={logoPreview} alt="Preview" />
-              <small style={{ color: 'var(--text-muted)' }}>{logo?.name || 'Current logo'}</small>
+              <small style={{ color: 'var(--text-muted)' }}>{logo?.name || t('currentLogo')}</small>
             </div>
           )}
-        </div>
+        </section>
+
         <div className="modal-actions">
           <button type="button" className="btn-outline" onClick={onClose} disabled={isPending}>{tCommon('cancel')}</button>
           <button type="submit" className="btn-primary" disabled={isPending}>

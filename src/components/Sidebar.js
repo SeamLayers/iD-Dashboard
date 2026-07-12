@@ -79,14 +79,16 @@ export default function Sidebar() {
       icon: <UserPlus size={20} />,
       anyOf: ['employee_project.view'],
     },
-    // POST /dashboard/register — admin creates user accounts.
-    // Open to superadmin and owner.
-    {
-      name: t('register'),
-      path: '/register',
-      icon: <UserCog size={20} />,
-      roles: ['superadmin', 'owner'],
-    },
+    // "Create User" (POST /dashboard/register) is hidden for now — accounts are
+    // auto-provisioned when adding a company (owner) or an employee, so a
+    // standalone user-creation screen only confuses admins. The /register page
+    // is kept in the codebase for future use. Re-add this item to restore it.
+    // {
+    //   name: t('register'),
+    //   path: '/register',
+    //   icon: <UserCog size={20} />,
+    //   roles: ['superadmin', 'owner'],
+    // },
     {
       name: t('approvals'),
       path: '/approvals',

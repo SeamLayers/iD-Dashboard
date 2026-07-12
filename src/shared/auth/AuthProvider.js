@@ -46,6 +46,7 @@ export function AuthProvider({ children }) {
       name: data?.name,
       email: data?.email,
       user_type: data?.user_type,
+      must_reset_password: Boolean(data?.must_reset_password),
     };
     localStorage.setItem(USER_KEY, JSON.stringify(userData));
     localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(data?.permissions || []));
@@ -63,12 +64,22 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (credentials) => {
     const data = await authService.login(credentials);
     persist(data);
-    setUser({ id: data.id, name: data.name, email: data.email, user_type: data.user_type });
+    setUser({ id: data.id, name: data.name, email: data.email, user_type: data.user_type, must_reset_password: Boolean(data.must_reset_password) });
     setPermissions(data.permissions || []);
     setRoles(data.roles || []);
     setToken(data.token);
     return data;
   }, [persist]);
+
+  // Clears the forced-reset flag after the user changes their temp password.
+  const clearMustReset = useCallback(() => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, must_reset_password: false };
+      if (typeof window !== 'undefined') localStorage.setItem(USER_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   const logout = useCallback(async () => {
     try {
@@ -117,13 +128,15 @@ export function AuthProvider({ children }) {
       roles,
       isAuthenticated: Boolean(token && user),
       isReady,
+      mustResetPassword: Boolean(user?.must_reset_password),
       login,
       logout,
+      clearMustReset,
       hasPermission,
       hasAnyPermission,
       hasRole,
     }),
-    [user, token, permissions, roles, isReady, login, logout, hasPermission, hasAnyPermission, hasRole]
+    [user, token, permissions, roles, isReady, login, logout, clearMustReset, hasPermission, hasAnyPermission, hasRole]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

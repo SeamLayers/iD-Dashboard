@@ -4989,3 +4989,69 @@ select.empf-input {
 .w-70 { width: 70%; }
 .w-80 { width: 80%; }
 .w-90 { width: 90%; }
+
+/* ── Sectioned modal form (Add/Edit Company) ───────────────────────── */
+.modal-box.modal-wide { max-width: 640px; width: min(640px, 94vw); }
+.modal-sections { display: flex; flex-direction: column; gap: 1rem; }
+.modal-section {
+  border: 1px solid var(--border-glass, rgba(148, 163, 184, 0.18));
+  border-radius: 16px;
+  padding: 1rem 1.1rem 1.15rem;
+  background: rgba(148, 163, 184, 0.04);
+}
+.modal-section-head { display: flex; align-items: flex-start; gap: 0.65rem; margin-bottom: 0.9rem; }
+.modal-section-icon {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  display: grid; place-items: center;
+  color: var(--accent-cyan, #00C4CC);
+  background: color-mix(in srgb, var(--accent-cyan, #00C4CC) 14%, transparent);
+}
+.modal-section-head h4 { margin: 0; font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
+.modal-section-head span { font-size: 0.78rem; color: var(--text-muted); }
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 0.9rem; }
+.modal-field-full { grid-column: 1 / -1; }
+.modal-field em { color: #ef4444; font-style: normal; }
+.modal-field label { display: inline-flex; align-items: center; gap: 4px; }
+.modal-hint-info {
+  display: flex; align-items: flex-start; gap: 6px;
+  margin: 0.8rem 0 0; font-size: 0.78rem; line-height: 1.45;
+  color: var(--text-secondary, var(--text-muted));
+}
+.modal-hint-info svg { flex-shrink: 0; margin-top: 2px; color: var(--accent-cyan, #00C4CC); }
+@media (max-width: 560px) { .modal-grid { grid-template-columns: 1fr; } }
+
+/* ── Forced first-login password reset gate ────────────────────────── */
+.force-reset-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  display: grid; place-items: center; padding: 1.25rem;
+  background: rgba(2, 6, 23, 0.66);
+  backdrop-filter: blur(6px);
+  animation: empFadeIn 0.25s ease-out;
+}
+.force-reset-modal {
+  width: min(440px, 96vw); border-radius: 20px; padding: 1.75rem 1.6rem 1.4rem;
+  text-align: center;
+}
+.force-reset-icon {
+  width: 52px; height: 52px; margin: 0 auto 0.9rem; border-radius: 14px;
+  display: grid; place-items: center; color: var(--accent-cyan, #00C4CC);
+  background: color-mix(in srgb, var(--accent-cyan, #00C4CC) 15%, transparent);
+}
+.force-reset-modal h2 { margin: 0 0 0.35rem; font-size: 1.25rem; font-weight: 700; }
+.force-reset-sub { margin: 0 0 1rem; font-size: 0.88rem; color: var(--text-muted); }
+.force-reset-note {
+  display: flex; align-items: flex-start; gap: 7px; text-align: start;
+  margin: 0 0 1.15rem; padding: 0.7rem 0.85rem; border-radius: 12px;
+  font-size: 0.8rem; line-height: 1.45; color: var(--text-secondary, var(--text-muted));
+  background: color-mix(in srgb, var(--accent-cyan, #00C4CC) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-cyan, #00C4CC) 22%, transparent);
+}
+.force-reset-note svg { flex-shrink: 0; margin-top: 2px; color: var(--accent-cyan, #00C4CC); }
+.force-reset-modal .modal-field { text-align: start; margin-bottom: 0.75rem; }
+.force-reset-submit { width: 100%; justify-content: center; margin-top: 0.35rem; padding: 0.7rem; }
+.force-reset-signout {
+  margin-top: 0.9rem; background: none; border: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.8rem; color: var(--text-muted);
+}
+.force-reset-signout:hover { color: var(--text-primary); }

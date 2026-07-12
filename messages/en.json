@@ -189,7 +189,19 @@
     "updateSuccess": "Company updated successfully",
     "deleteSuccess": "Company deleted successfully",
     "myCompany": "My Company",
-    "ownerView": "View your company"
+    "ownerView": "View your company",
+    "sectionCompany": "Company info",
+    "sectionCompanyHint": "Legal name, contact, and registration.",
+    "sectionOwner": "Owner account",
+    "sectionOwnerHint": "The company owner’s dashboard login.",
+    "ownerName": "Owner name",
+    "ownerNamePlaceholder": "e.g. Ali Al-Rabia",
+    "ownerEmail": "Owner email",
+    "ownerPhone": "Owner phone",
+    "ownerAccountNote": "We create the owner’s login and email them a temporary password (valid 48h). They set their own password on first sign-in.",
+    "replaceLogo": "Replace logo",
+    "currentLogo": "Current logo",
+    "createSuccessTemp": "Company created. Owner temporary password: {password}"
   },
   "Branches": {
     "title": "Branches",
@@ -681,5 +693,19 @@
     "validation": {
       "nameRequired": "Role name is required."
     }
+  },
+  "ForceReset": {
+    "title": "Set your password",
+    "subtitle": "Your account was created with a temporary password. Choose your own to continue.",
+    "expiryNote": "For your security, the temporary password expires 48 hours after your account was created. Set a new one now.",
+    "currentPassword": "Temporary password",
+    "currentPasswordPlaceholder": "The password we emailed you",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "submit": "Save password & continue",
+    "signOut": "Sign out",
+    "mismatch": "The passwords do not match.",
+    "tooShort": "Password must be at least 8 characters.",
+    "success": "Password updated. Welcome to iD+."
   }
 }

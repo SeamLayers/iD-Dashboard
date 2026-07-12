@@ -30,6 +30,18 @@ export const authService = {
     return unwrap(res);
   },
 
+  // Authenticated password change — used by the forced first-login reset
+  // (temp password → own password) and the normal change action. Does not use
+  // the OTP flow.
+  changePassword: async ({ current_password, password, password_confirmation }) => {
+    const res = await axiosInstance.post('/auth/change-password', {
+      current_password,
+      password,
+      password_confirmation,
+    });
+    return unwrap(res);
+  },
+
   forgotPassword: async (email) => {
     const res = await axiosInstance.post('/auth/forgot-password', { email });
     return unwrap(res);

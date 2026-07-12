@@ -54,8 +54,13 @@ export default function CompaniesPage() {
         await updateMutation.mutateAsync({ id: editTarget.id, payload });
         toast.success(t('updateSuccess'));
       } else {
-        await createMutation.mutateAsync(payload);
-        toast.success(t('createSuccess'));
+        const created = await createMutation.mutateAsync(payload);
+        const temp = created?.temp_password;
+        // Surface the owner's one-time password so the superadmin can share it.
+        toast.success(
+          temp ? t('createSuccessTemp', { password: temp }) : t('createSuccess'),
+          { duration: temp ? 10000 : 3000 },
+        );
       }
       setShowForm(false);
       setEditTarget(null);
