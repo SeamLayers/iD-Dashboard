@@ -14,6 +14,7 @@ import {
 } from '@/shared/api/hooks';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import { useAuth } from '@/shared/auth/AuthProvider';
+import { useRouter } from '@/i18n/routing';
 import {
   RoleCard,
   CreateRoleDialog,
@@ -24,11 +25,19 @@ import {
 export default function RolesPage() {
   const t = useTranslations('Roles');
   const tCommon = useTranslations('Common');
-  const { hasPermission } = useAuth();
+  const { hasPermission, hasRole, isReady } = useAuth();
+  const router = useRouter();
 
-  // Roles is visible to anyone with role.view (owners included), but write
-  // actions require the matching permission — owners only have role.view, so
-  // hide controls they'd get a 403 from instead of showing dead buttons.
+  // Roles & Permissions manages the GLOBAL platform roles, so it's
+  // superadmin-only. The sidebar hides it, but a direct URL would still render
+  // it — so guard the route too and bounce anyone else home (no flash of the
+  // superadmin cards for an owner). Wait for auth to be ready first.
+  const isSuperadmin = hasRole(['superadmin']);
+  useEffect(() => {
+    if (isReady && !isSuperadmin) router.replace('/');
+  }, [isReady, isSuperadmin, router]);
+
+  // Write actions stay permission-checked as belt-and-suspenders.
   const canCreate = hasPermission('role.create');
   const canUpdate = hasPermission('role.update');
   const canDelete = hasPermission('role.delete');
@@ -103,6 +112,10 @@ export default function RolesPage() {
       toast.error(getApiErrorMessage(err));
     }
   };
+
+  // Non-superadmins are being redirected by the effect above — render nothing
+  // in the meantime so the roles UI never flashes for them.
+  if (!isReady || !isSuperadmin) return null;
 
   if (selectedRoleId && activeRole) {
     return (

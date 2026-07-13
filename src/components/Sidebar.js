@@ -107,10 +107,14 @@ export default function Sidebar() {
       icon: <Palette size={20} />,
       anyOf: ['business_card_template.view'],
     },
+    // Roles & Permissions manages the GLOBAL platform roles (superadmin, owner,
+    // manager, employee) — editing them changes behaviour for every company, so
+    // it's superadmin-only. An owner must never see or reach this screen.
     {
       name: t('roles'),
       path: '/roles',
       icon: <ShieldCheck size={20} />,
+      roles: ['superadmin'],
       anyOf: ['role.view'],
     },
     // Settings stays visible to all authenticated users.

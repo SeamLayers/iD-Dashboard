@@ -1,6 +1,10 @@
 "use client";
 
-import { Globe, Bell, Palette, Shield, Building2, Check, Moon, Sun, Users } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { Globe, Bell, Palette, Shield, Building2, Check, Moon, Sun, Users, Loader2 } from 'lucide-react';
+import { authService } from '@/shared/api/services';
+import { getApiErrorMessage } from '@/shared/api/axios.instance';
 
 export function SettingsTabs({ tabs, activeTab, onChange }) {
   return (
@@ -125,18 +129,60 @@ export function NotificationsSettingsSection({ t, notifyEmail, notifyPush, notif
   );
 }
 
-export function SecuritySettingsSection({ t, showToast }) {
+export function SecuritySettingsSection({ t }) {
+  // Real self-service password change via the authenticated
+  // POST /auth/change-password endpoint (same one the forced first-login reset
+  // uses). Backend rules: current_password required, new min:8, must differ.
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [pending, setPending] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!current) { toast.error(t('currentPasswordRequired')); return; }
+    if (next.length < 8) { toast.error(t('passwordTooShort')); return; }
+    if (next !== confirm) { toast.error(t('passwordMismatch')); return; }
+    if (next === current) { toast.error(t('passwordSameAsCurrent')); return; }
+    setPending(true);
+    try {
+      await authService.changePassword({
+        current_password: current,
+        password: next,
+        password_confirmation: confirm,
+      });
+      toast.success(t('passwordChanged'));
+      setCurrent(''); setNext(''); setConfirm('');
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setPending(false);
+    }
+  };
+
   return (
     <div className="settings-section">
       <h2 className="settings-sec-title">{t('security')}</h2>
-      <div className="settings-form">
-        <div className="settings-field"><label>{t('currentPassword')}</label><input type="password" placeholder="••••••••" className="modal-input" /></div>
-        <div className="settings-row">
-          <div className="settings-field"><label>{t('newPassword')}</label><input type="password" placeholder="••••••••" className="modal-input" /></div>
-          <div className="settings-field"><label>{t('confirmPassword')}</label><input type="password" placeholder="••••••••" className="modal-input" /></div>
+      <form className="settings-form" onSubmit={submit}>
+        <div className="settings-field">
+          <label>{t('currentPassword')}</label>
+          <input type="password" placeholder="••••••••" className="modal-input" value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" required />
         </div>
-        <button className="btn-primary" onClick={() => showToast(t('saved'))}><Check size={14}/><span>{t('updatePassword')}</span></button>
-      </div>
+        <div className="settings-row">
+          <div className="settings-field">
+            <label>{t('newPassword')}</label>
+            <input type="password" placeholder="••••••••" className="modal-input" value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" minLength={8} required />
+          </div>
+          <div className="settings-field">
+            <label>{t('confirmPassword')}</label>
+            <input type="password" placeholder="••••••••" className="modal-input" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" required />
+          </div>
+        </div>
+        <button type="submit" className="btn-primary" disabled={pending}>
+          {pending ? <Loader2 size={14} className="spinner" /> : <Check size={14} />}
+          <span>{t('updatePassword')}</span>
+        </button>
+      </form>
     </div>
   );
 }

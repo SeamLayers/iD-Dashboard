@@ -142,7 +142,7 @@ export default function SettingsPage() {
           )}
 
           {activeTab === 'security' && (
-            <SecuritySettingsSection t={t} showToast={showToast} />
+            <SecuritySettingsSection t={t} />
           )}
 
           {activeTab === 'delegation' && (
