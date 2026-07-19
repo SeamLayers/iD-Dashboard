@@ -115,3 +115,13 @@ export const useDeleteCompany = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.companies.all }),
   });
 };
+
+// Owner self-service update of their own company (My Company screen).
+// Invalidating the ['companies'] prefix also refreshes ['companies','mine'].
+export const useUpdateMyCompany = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload) => companiesService.updateMine(payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.companies.all }),
+  });
+};

@@ -62,6 +62,11 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (credentials) => {
+    // Login is NEVER gated on FCM: authService sends the 'web-dashboard'
+    // placeholder device_token the backend requires, and PushNotificationsManager
+    // upgrades it to the real FCM token right after login via /auth/device-token
+    // (when permission is already granted). Awaiting getToken() here could hang
+    // login on networks that blackhole Google FCM endpoints.
     const data = await authService.login(credentials);
     persist(data);
     setUser({ id: data.id, name: data.name, email: data.email, user_type: data.user_type, must_reset_password: Boolean(data.must_reset_password) });

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import RetryButton from '@/shared/components/RetryButton';
 import { toast } from 'react-hot-toast';
 import {
   EmployeesHeader,
@@ -29,7 +30,6 @@ export default function EmployeesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [companyId, setCompanyId] = useState('');
   const [branchId, setBranchId] = useState('');
-  const [openMenuId, setOpenMenuId] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
@@ -75,7 +75,6 @@ export default function EmployeesPage() {
       await deleteMutation.mutateAsync(deleteTarget.id);
       toast.success(t('deleteSuccess'));
       setDeleteTarget(null);
-      setOpenMenuId(null);
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     }
@@ -109,7 +108,7 @@ export default function EmployeesPage() {
         <div className="entity-error glass-panel">
           {getApiErrorMessage(error)}
           <div style={{ marginTop: 12 }}>
-            <button className="btn-outline" onClick={() => refetch()}>{tCommon('retry')}</button>
+            <RetryButton onClick={() => refetch()} variant="ghost" />
           </div>
         </div>
       )}
@@ -118,10 +117,8 @@ export default function EmployeesPage() {
         <EmployeesTable
           t={t}
           employees={filteredEmployees}
-          openMenuId={openMenuId}
-          setOpenMenuId={setOpenMenuId}
-          onEdit={(emp) => { router.push(`/employees/new?id=${emp.id}`); setOpenMenuId(null); }}
-          onDelete={(emp) => { setDeleteTarget(emp); setOpenMenuId(null); }}
+          onEdit={(emp) => router.push(`/employees/new?id=${emp.id}`)}
+          onDelete={(emp) => setDeleteTarget(emp)}
         />
       )}
 

@@ -32,6 +32,15 @@ export const companiesService = {
     return unwrapMaybe(res);
   },
 
+  // Owner self-service edit of their OWN company. Backend resolves the company
+  // from the authed user (tenancy-safe) — POST (real route, not _method spoof)
+  // so multipart logo uploads work.
+  updateMine: async (payload) => {
+    const fd = buildFormData(payload);
+    const res = await axiosInstance.post('/dashboard/owner/company', fd);
+    return unwrapMaybe(res);
+  },
+
   show: async (id) => {
     const res = await axiosInstance.get(`/dashboard/company/${id}`);
     return unwrap(res);

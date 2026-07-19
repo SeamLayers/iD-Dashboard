@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'react-hot-toast';
 import {
   Building2,
   Mail,
@@ -8,13 +10,15 @@ import {
   FileText,
   Users,
   MapPin,
-  RefreshCcw,
   ShieldAlert,
+  Pencil,
 } from 'lucide-react';
-import { useMyCompany } from '@/shared/api/hooks';
+import { useMyCompany, useUpdateMyCompany } from '@/shared/api/hooks';
 import { useAuth } from '@/shared/auth/AuthProvider';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import { Link } from '@/i18n/routing';
+import RetryButton from '@/shared/components/RetryButton';
+import { CompanyFormDialog } from '@/components/features/companies/CompaniesSections';
 
 /**
  * Owner-only landing page backed by `GET /dashboard/owner/company`.
@@ -26,14 +30,29 @@ import { Link } from '@/i18n/routing';
 export default function MyCompanyPage() {
   const t = useTranslations('MyCompany');
   const tCommon = useTranslations('Common');
+  // The edit dialog reuses the Companies form component, so it needs the
+  // Companies namespace (its labels/keys live there).
+  const tc = useTranslations('Companies');
   const { hasRole, isReady } = useAuth();
   const isOwner = hasRole('owner');
+  const [showEdit, setShowEdit] = useState(false);
   // This page is backed by the owner-only `/dashboard/owner/company` route, so
   // it only fetches for owners. Superadmins would 403 there (role middleware
   // doesn't honour the superadmin Gate bypass) — they use the Companies list.
   const { data, isLoading, isError, error, refetch } = useMyCompany({
     enabled: isReady && isOwner,
   });
+  const updateMine = useUpdateMyCompany();
+
+  const handleUpdate = async (payload) => {
+    try {
+      await updateMine.mutateAsync(payload);
+      toast.success(tc('updateSuccess'));
+      setShowEdit(false);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    }
+  };
 
   if (isReady && !isOwner) {
     return (
@@ -65,14 +84,13 @@ export default function MyCompanyPage() {
           <p className="page-subtitle">{t('subtitle')}</p>
         </div>
         <div className="page-actions">
-          <button
-            className="btn-secondary"
-            onClick={() => refetch()}
-            disabled={isLoading}
-          >
-            <RefreshCcw size={16} />
-            <span>{tCommon('retry')}</span>
-          </button>
+          {company && (
+            <button className="btn-primary" onClick={() => setShowEdit(true)}>
+              <Pencil size={16} />
+              <span>{tc('editCompany')}</span>
+            </button>
+          )}
+          <RetryButton onClick={() => refetch()} loading={isLoading} variant="solid" />
         </div>
       </div>
 
@@ -250,6 +268,15 @@ export default function MyCompanyPage() {
           </section>
         </div>
       )}
+
+      <CompanyFormDialog
+        t={tc}
+        isOpen={showEdit}
+        onClose={() => setShowEdit(false)}
+        initial={company}
+        onSubmit={handleUpdate}
+        isPending={updateMine.isPending}
+      />
     </div>
   );
 }

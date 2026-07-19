@@ -37,7 +37,8 @@ export function AssignmentsFilters({ t, employeeId, setEmployeeId, projectId, se
 
 export function AssignmentsTable({ t, items, onDelete }) {
   const tCommon = useTranslations('Common');
-  const { hasPermission } = useAuth();
+  const { hasPermission, hasRole } = useAuth();
+  const canDelete = hasRole(['superadmin', 'owner']) || hasPermission('employee_project.delete');
   return (
     <div className="emp-table-wrap glass-panel assignment-table-wrap">
       <table className="assignment-table">
@@ -61,7 +62,7 @@ export function AssignmentsTable({ t, items, onDelete }) {
               <td>{row.project?.name || `#${row.project_id}`}</td>
               <td dir="ltr">{formatDateTime(row.assigned_at)}</td>
               <td style={{ textAlign: 'end' }}>
-                {hasPermission('employee_project.delete') && (
+                {canDelete && (
                   <button className="btn-icon danger" onClick={() => onDelete(row)} aria-label="Remove">
                     <Trash2 size={16} />
                   </button>

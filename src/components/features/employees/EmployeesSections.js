@@ -5,7 +5,6 @@ import {
   Plus, Upload, Search, Edit2, Trash2, X, Check,
 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
-import RowActionsMenu from '@/components/ui/RowActionsMenu';
 import { useAuth } from '@/shared/auth/AuthProvider';
 
 function getInitials(name = '') {
@@ -102,9 +101,14 @@ export function EmployeesFilters({
   );
 }
 
-export function EmployeesTable({ t, employees, openMenuId, setOpenMenuId, onEdit, onDelete }) {
+export function EmployeesTable({ t, employees, onEdit, onDelete }) {
   const tCommon = useTranslations('Common');
-  const { hasPermission } = useAuth();
+  const { hasPermission, hasRole } = useAuth();
+  // Owners and superadmins can delete employees (backend enforces role +
+  // tenancy). Gate on ROLE (already present at login) rather than the
+  // fine-grained `employee.delete` permission so the button never depends on
+  // the roles seeder having been re-run on the server.
+  const canDelete = hasRole(['superadmin', 'owner']) || hasPermission('employee.delete');
   return (
     <div className="emp-table-wrap glass-panel">
       <table className="emp-table">
@@ -147,19 +151,28 @@ export function EmployeesTable({ t, employees, openMenuId, setOpenMenuId, onEdit
                     <span className={`emp-status-pill status-${status}`}>{t(`status_${status}`)}</span>
                   </td>
                   <td className="td-actions">
-                    <RowActionsMenu
-                      open={openMenuId === employee.id}
-                      onToggle={() => setOpenMenuId(openMenuId === employee.id ? null : employee.id)}
-                    >
-                      <button className="kebab-item" onClick={() => { setOpenMenuId(null); onEdit(employee); }}>
-                        <Edit2 size={14} /><span>{tCommon('edit')}</span>
+                    <div className="emp-row-actions">
+                      <button
+                        type="button"
+                        className="btn-icon"
+                        onClick={() => onEdit(employee)}
+                        title={tCommon('edit')}
+                        aria-label={tCommon('edit')}
+                      >
+                        <Edit2 size={16} />
                       </button>
-                      {hasPermission('employee.delete') && (
-                        <button className="kebab-item kebab-danger" onClick={() => { setOpenMenuId(null); onDelete(employee); }}>
-                          <Trash2 size={14} /><span>{tCommon('delete')}</span>
+                      {canDelete && (
+                        <button
+                          type="button"
+                          className="btn-icon danger"
+                          onClick={() => onDelete(employee)}
+                          title={tCommon('delete')}
+                          aria-label={tCommon('delete')}
+                        >
+                          <Trash2 size={16} />
                         </button>
                       )}
-                    </RowActionsMenu>
+                    </div>
                   </td>
                 </tr>
               );

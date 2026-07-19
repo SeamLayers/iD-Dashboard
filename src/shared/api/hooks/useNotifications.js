@@ -20,3 +20,8 @@ export const useMarkNotificationRead = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.notifications.all }),
   });
 };
+
+export const useUpdateDeviceToken = () =>
+  useMutation({
+    mutationFn: (token) => notificationsService.updateDeviceToken(token),
+  });

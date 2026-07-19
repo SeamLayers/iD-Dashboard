@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   ArrowLeft, User, Building2, Mail, Phone, Hash, IdCard, Briefcase,
-  KeyRound, ImagePlus, Loader2, Check, X, Info, MapPin,
+  KeyRound, ImagePlus, Loader2, Check, X, Info, MapPin, AlertCircle,
 } from 'lucide-react';
+import { normalizeSaudiPhone } from '@/shared/utils/phone';
 
 function getInitials(name = '') {
   return name.split(' ').map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
@@ -45,6 +46,7 @@ export default function EmployeeForm({
   const [position, setPosition] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('active');
   const [logo, setLogo] = useState(null);
@@ -82,8 +84,21 @@ export default function EmployeeForm({
     reader.readAsDataURL(file);
   };
 
+  const validatePhone = (value) => {
+    const { valid } = normalizeSaudiPhone(value);
+    setPhoneError(valid ? '' : t('phoneInvalid'));
+    return valid;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Phone is optional, but if present it must be a valid (Saudi/E.164)
+    // number — block submit and surface an inline error otherwise.
+    const { valid: phoneValid, e164 } = normalizeSaudiPhone(phone);
+    if (!phoneValid) {
+      setPhoneError(t('phoneInvalid'));
+      return;
+    }
     // Never send user_id (provisioned server-side). Blank optional fields are
     // stripped by buildFormData, so the backend auto-generates the employee
     // number and a temporary password when they're left empty.
@@ -96,7 +111,8 @@ export default function EmployeeForm({
       name,
       position,
       email,
-      phone: phone || undefined,
+      // Send the normalized E.164 form so stored numbers stay consistent.
+      phone: e164,
       status,
     };
     if (!isEdit && password) payload.password = password;
@@ -218,7 +234,20 @@ export default function EmployeeForm({
             </div>
             <div className="empf-field">
               <label><Phone size={13} /> {t('phone')}</label>
-              <input className="empf-input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="05xxxxxxxx" />
+              <input
+                className={`empf-input${phoneError ? ' empf-input-error' : ''}`}
+                type="tel"
+                inputMode="tel"
+                dir="ltr"
+                value={phone}
+                onChange={(e) => { setPhone(e.target.value); if (phoneError) validatePhone(e.target.value); }}
+                onBlur={(e) => validatePhone(e.target.value)}
+                placeholder="05XXXXXXXX / +9665XXXXXXXX"
+                aria-invalid={phoneError ? 'true' : 'false'}
+              />
+              {phoneError && (
+                <small className="empf-hint empf-hint-error"><AlertCircle size={12} /> {phoneError}</small>
+              )}
             </div>
             {!isEdit && (
               <div className="empf-field empf-field-full">

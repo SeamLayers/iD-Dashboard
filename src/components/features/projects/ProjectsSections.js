@@ -42,7 +42,8 @@ export function ProjectsFilters({ t, search, setSearch, companyId, setCompanyId,
 }
 
 export function ProjectCard({ t, project, onEdit, onDelete }) {
-  const { hasPermission } = useAuth();
+  const { hasPermission, hasRole } = useAuth();
+  const canDelete = hasRole(['superadmin', 'owner']) || hasPermission('project.delete');
   const employeesCount = project.employees_count ?? project.employees?.length ?? 0;
   return (
     <div className="entity-card glass-panel">
@@ -72,7 +73,7 @@ export function ProjectCard({ t, project, onEdit, onDelete }) {
           <Pencil size={14} />
           <span>{t('editProject')}</span>
         </button>
-        {hasPermission('project.delete') && (
+        {canDelete && (
           <button className="btn-icon danger" onClick={() => onDelete(project)} aria-label="Delete">
             <Trash2 size={16} />
           </button>
@@ -106,8 +107,14 @@ export function ProjectFormDialog({ t, isOpen, onClose, initial, companies, empl
   }, [isOpen, initial, companies]);
 
   const filteredEmployees = (() => {
+    // Employee list items expose the company as a NESTED relation object
+    // (company: { id }) and NOT a flat company_id, so match on either —
+    // otherwise String(undefined) never equals the companyId and every
+    // employee is filtered out ("No employees found"). Mirrors EmployeeForm.
     let list = companyId
-      ? employees.filter((e) => String(e.company_id) === String(companyId))
+      ? employees.filter(
+          (e) => String(e.company_id ?? e.company?.id) === String(companyId)
+        )
       : employees;
     if (empSearch) {
       const q = empSearch.toLowerCase();

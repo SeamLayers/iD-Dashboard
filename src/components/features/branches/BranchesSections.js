@@ -7,7 +7,8 @@ import Dialog from '@/components/ui/Dialog';
 import { useAuth } from '@/shared/auth/AuthProvider';
 
 export function BranchCard({ t, branch, onEdit, onDelete }) {
-  const { hasPermission } = useAuth();
+  const { hasPermission, hasRole } = useAuth();
+  const canDelete = hasRole(['superadmin', 'owner']) || hasPermission('company_branch.delete');
   return (
     <div className="entity-card glass-panel">
       <div className="entity-card-header">
@@ -32,7 +33,7 @@ export function BranchCard({ t, branch, onEdit, onDelete }) {
           <Pencil size={14} />
           <span>{t('editBranch')}</span>
         </button>
-        {hasPermission('company_branch.delete') && (
+        {canDelete && (
           <button className="btn-icon danger" onClick={() => onDelete(branch)} aria-label="Delete">
             <Trash2 size={16} />
           </button>

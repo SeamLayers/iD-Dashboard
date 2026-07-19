@@ -18,4 +18,11 @@ export const notificationsService = {
     const res = await axiosInstance.post(`/notifications/${id}/read`);
     return res.data;
   },
+
+  // Persist the browser's FCM web-push token on the authenticated user so the
+  // backend (FirebaseService) can deliver notifications to this device.
+  updateDeviceToken: async (device_token) => {
+    const res = await axiosInstance.post('/auth/device-token', { device_token });
+    return res.data;
+  },
 };

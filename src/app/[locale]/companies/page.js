@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import RetryButton from '@/shared/components/RetryButton';
 import { toast } from 'react-hot-toast';
 import { Plus, Building2, ShieldAlert } from 'lucide-react';
 import {
@@ -126,7 +127,7 @@ export default function CompaniesPage() {
         <div className="entity-error glass-panel">
           {getApiErrorMessage(error)}
           <div style={{ marginTop: 12 }}>
-            <button className="btn-outline" onClick={() => refetch()}>{tCommon('retry')}</button>
+            <RetryButton onClick={() => refetch()} variant="ghost" />
           </div>
         </div>
       )}

@@ -1,9 +1,52 @@
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
+/**
+ * The API speaks two different error shapes:
+ *  1. ResponseHelper::error → { success:false, message:string, errors?:{field:string[]} }
+ *  2. FormRequest validation → { success:true, message:{ field:{en,ar} | string[] | string }, data:null }
+ *
+ * The second one puts a *localized object* under `message`, so `message` is NOT
+ * always a string. getApiErrorMessage() below normalizes both into a single
+ * human string — critical, because a raw object reaching a toast/JSX child
+ * throws "Objects are not valid as a React child" and hard-crashes the page.
+ */
+type LocalizedMessage = { en?: string; ar?: string; [k: string]: unknown };
+type ValidationMessageMap = Record<string, LocalizedMessage | string[] | string>;
+
 interface LaravelErrorEnvelope {
   success?: boolean;
-  message?: string;
+  message?: string | ValidationMessageMap;
   errors?: Record<string, string[]>;
+}
+
+/** Current UI language, mirroring the request interceptor's Accept-Language logic. */
+function currentLang(): 'ar' | 'en' {
+  if (typeof window === 'undefined') return 'en';
+  const stored = localStorage.getItem('idplus_lang');
+  const fromHtml =
+    typeof document !== 'undefined' ? document.documentElement.lang : null;
+  return (stored || fromHtml || 'en').startsWith('ar') ? 'ar' : 'en';
+}
+
+/** Coerce any single field-error value ({en,ar} | string[] | string) to a string. */
+function fieldErrorToString(value: unknown): string | null {
+  if (typeof value === 'string') return value.trim() || null;
+  if (Array.isArray(value)) {
+    const first = value.find((v) => typeof v === 'string' && v.trim());
+    return (first as string) || null;
+  }
+  if (value && typeof value === 'object') {
+    const loc = value as LocalizedMessage;
+    const lang = currentLang();
+    const picked = (loc[lang] ?? loc.en ?? loc.ar) as string | undefined;
+    if (typeof picked === 'string' && picked.trim()) return picked.trim();
+    // Fall back to the first stringifiable leaf so an object never escapes.
+    for (const v of Object.values(loc)) {
+      const s = fieldErrorToString(v);
+      if (s) return s;
+    }
+  }
+  return null;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://idplus.cfd/ID-platform/api/v1';
@@ -137,11 +180,27 @@ export function normalizePaginated<T>(res: AxiosResponse): PaginatedResponse<T> 
 export function getApiErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as LaravelErrorEnvelope | undefined;
+
+    // Shape 1: ResponseHelper::error → { errors: { field: [msg] } }
     if (data?.errors) {
       const firstField = Object.values(data.errors)[0];
-      if (Array.isArray(firstField) && firstField[0]) return firstField[0];
+      const msg = fieldErrorToString(firstField);
+      if (msg) return msg;
     }
-    if (data?.message) return data.message;
+
+    // Shape 2: FormRequest validation → message is an OBJECT keyed by field,
+    // each value {en,ar} | string[] | string. Never return the raw object.
+    if (data?.message && typeof data.message === 'object') {
+      const firstField = Object.values(data.message as ValidationMessageMap)[0];
+      const msg = fieldErrorToString(firstField);
+      if (msg) return msg;
+    }
+
+    // Plain string message (most non-validation errors).
+    if (typeof data?.message === 'string' && data.message.trim()) {
+      return data.message.trim();
+    }
+
     return error.message;
   }
   if (error instanceof Error) return error.message;

@@ -39,7 +39,8 @@ export function DepartmentsFilters({ t, search, setSearch, companyId, setCompany
 }
 
 export function DepartmentCard({ t, department, onEdit, onDelete }) {
-  const { hasPermission } = useAuth();
+  const { hasPermission, hasRole } = useAuth();
+  const canDelete = hasRole(['superadmin', 'owner']) || hasPermission('department.delete');
   return (
     <div className="entity-card glass-panel">
       <div className="entity-card-header">
@@ -70,7 +71,7 @@ export function DepartmentCard({ t, department, onEdit, onDelete }) {
             <span>{t('editDepartment')}</span>
           </button>
         )}
-        {hasPermission('department.delete') && (
+        {canDelete && (
           <button className="btn-icon danger" onClick={() => onDelete(department)} aria-label="Delete">
             <Trash2 size={16} />
           </button>
