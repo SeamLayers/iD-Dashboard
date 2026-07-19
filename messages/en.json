@@ -647,7 +647,9 @@
     "status_submitted": "Submitted",
     "status_approved": "Approved",
     "status_rejected": "Rejected",
-    "status_published": "Published"
+    "status_published": "Published",
+    "openPublicCard": "Open public card",
+    "copyPublicLink": "Copy public link"
   },
   "BusinessCardTemplates": {
     "title": "Card Designs",

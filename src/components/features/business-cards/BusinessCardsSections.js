@@ -14,6 +14,8 @@ import {
   Hash,
   AlertCircle,
   Loader2,
+  ExternalLink,
+  Link2,
 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
 import RowActionsMenu from '@/components/ui/RowActionsMenu';
@@ -37,6 +39,18 @@ function getEmployeeName(card) {
     card?.employee?.name ||
     `#${card?.employee_id ?? '—'}`
   );
+}
+
+// Public landing URL for a card. BusinessCardResource already returns an
+// absolute URL in `public_url`; fall back to composing one from the API base
+// only if the API ever starts returning the bare slug.
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://idplus.cfd/ID-platform/api/v1';
+
+export function getPublicCardUrl(card) {
+  const value = card?.public_url;
+  if (!value) return '';
+  if (/^https?:\/\//i.test(value)) return value;
+  return `${API_BASE.replace(/\/+$/, '')}/card/${value}`;
 }
 
 function getEmployeeNumber(card) {
@@ -64,6 +78,8 @@ export function BusinessCardCard({
   const employeeNumber = getEmployeeNumber(card);
   const company = card?.card_data_json?.company || card?.employee?.company?.name;
   const templateName = card?.template?.name;
+
+  const publicUrl = getPublicCardUrl(card);
 
   const canSubmit = status === 'draft';
   const canPublish = status === 'approved';
@@ -100,6 +116,31 @@ export function BusinessCardCard({
             <button className="kebab-item" onClick={() => { setOpenMenuId(null); onDeactivate(card); }}>
               <PauseCircle size={14} /><span>{t('deactivate')}</span>
             </button>
+          )}
+          {/* The public link had no surface anywhere in the dashboard — the
+              only way to reach a live card was the Approvals preview, which
+              stops listing the card the moment it is approved. */}
+          {publicUrl && status === 'published' && (
+            <>
+              <a
+                className="kebab-item"
+                href={publicUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setOpenMenuId(null)}
+              >
+                <ExternalLink size={14} /><span>{t('openPublicCard')}</span>
+              </a>
+              <button
+                className="kebab-item"
+                onClick={() => {
+                  setOpenMenuId(null);
+                  navigator.clipboard?.writeText(publicUrl).catch(() => {});
+                }}
+              >
+                <Link2 size={14} /><span>{t('copyPublicLink')}</span>
+              </button>
+            </>
           )}
           <button className="kebab-item kebab-danger" onClick={() => { setOpenMenuId(null); onDelete(card); }}>
             <Trash2 size={14} /><span>{tCommon('delete')}</span>

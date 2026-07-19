@@ -647,7 +647,9 @@
     "status_submitted": "مُرسلة",
     "status_approved": "مقبولة",
     "status_rejected": "مرفوضة",
-    "status_published": "منشورة"
+    "status_published": "منشورة",
+    "openPublicCard": "فتح البطاقة العامة",
+    "copyPublicLink": "نسخ رابط البطاقة"
   },
   "BusinessCardTemplates": {
     "title": "تصاميم البطاقات",
