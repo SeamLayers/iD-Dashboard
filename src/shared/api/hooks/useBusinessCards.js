@@ -85,7 +85,21 @@ export const useApproveBusinessCard = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id) => businessCardsService.approve(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.businessCards.all }),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: queryKeys.businessCards.all });
+      qc.invalidateQueries({ queryKey: queryKeys.businessCards.detail(id) });
+    },
+  });
+};
+
+export const useRequestBusinessCardChanges = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, comment }) => businessCardsService.requestChanges(id, comment),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: queryKeys.businessCards.all });
+      qc.invalidateQueries({ queryKey: queryKeys.businessCards.detail(vars.id) });
+    },
   });
 };
 

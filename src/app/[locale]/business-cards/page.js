@@ -13,6 +13,7 @@ import {
   useSubmitBusinessCard,
   usePublishBusinessCard,
   useDeactivateBusinessCard,
+  useRequestBusinessCardChanges,
   useCompaniesForCurrentUser,
   useEmployees,
   useBusinessCardTemplates,
@@ -27,8 +28,10 @@ import {
   DeleteBusinessCardDialog,
   IssueCardsDialog,
 } from '@/components/features/business-cards/BusinessCardsSections';
+// Same review dialog the Approvals queue uses — it carries its own copy.
+import { RequestChangesDialog } from '@/components/features/approvals/ApprovalsSections';
 
-const STATUSES = ['draft', 'submitted', 'approved', 'rejected', 'published'];
+const STATUSES = ['draft', 'submitted', 'changes_requested', 'approved', 'rejected', 'published'];
 
 const cardName = (card) => card?.card_data_json?.name || card?.employee?.name || undefined;
 
@@ -43,6 +46,8 @@ export default function BusinessCardsPage() {
   const [showIssue, setShowIssue] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [changesTarget, setChangesTarget] = useState(null);
+  const [comment, setComment] = useState('');
 
   useEffect(() => {
     setPage(1);
@@ -68,6 +73,7 @@ export default function BusinessCardsPage() {
   const submitMutation = useSubmitBusinessCard();
   const publishMutation = usePublishBusinessCard();
   const deactivateMutation = useDeactivateBusinessCard();
+  const requestChangesMutation = useRequestBusinessCardChanges();
 
   const items = Array.isArray(data?.data) ? data.data : [];
   const companies = Array.isArray(companiesData?.data) ? companiesData.data : [];
@@ -131,6 +137,31 @@ export default function BusinessCardsPage() {
     try {
       await publishMutation.mutateAsync(card.id);
       toast.success(t('publishSuccess'));
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    }
+  };
+
+  const openRequestChanges = (card) => {
+    setComment('');
+    setChangesTarget(card);
+  };
+
+  const closeRequestChanges = () => {
+    setChangesTarget(null);
+    setComment('');
+  };
+
+  const handleRequestChanges = async () => {
+    if (!changesTarget?.id) return;
+    const trimmed = comment.trim();
+    if (!trimmed) return;
+    const ok = await confirm({ action: 'requestChanges', name: cardName(changesTarget) });
+    if (!ok) return;
+    try {
+      await requestChangesMutation.mutateAsync({ id: changesTarget.id, comment: trimmed });
+      toast.success(t('requestChangesSuccess'));
+      closeRequestChanges();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     }
@@ -221,6 +252,7 @@ export default function BusinessCardsPage() {
               onSubmit={handleSubmitForReview}
               onPublish={handlePublish}
               onDeactivate={handleDeactivate}
+              onRequestChanges={openRequestChanges}
               onDelete={setDeleteTarget}
             />
           ))}
@@ -248,6 +280,16 @@ export default function BusinessCardsPage() {
         templates={templates}
         onSubmit={handleUpdate}
         isPending={updateMutation.isPending}
+      />
+
+      <RequestChangesDialog
+        isOpen={Boolean(changesTarget)}
+        name={cardName(changesTarget)}
+        comment={comment}
+        setComment={setComment}
+        onClose={closeRequestChanges}
+        onConfirm={handleRequestChanges}
+        isPending={requestChangesMutation.isPending}
       />
 
       <DeleteBusinessCardDialog

@@ -41,14 +41,21 @@ export const businessCardsService = {
     return unwrap(res);
   },
 
-  // Review actions live under the mobile-scoped routes (role:superadmin|employee
-  // + business_card.approve/reject). Superadmins reviewing from the dashboard
-  // hit the same endpoints.
+  // Owner-side review of what the employee personalised. These live under the
+  // dashboard routes (role:owner|superadmin) — the older /mobile ones are
+  // scoped to superadmin|employee and 403 for a company owner.
   approve: async (id) => {
-    const res = await axiosInstance.post(`/mobile/business-cards/${id}/approve`);
+    const res = await axiosInstance.post(`/dashboard/business-cards/${id}/approve`);
     return unwrap(res);
   },
 
+  requestChanges: async (id, comment) => {
+    const res = await axiosInstance.post(`/dashboard/business-cards/${id}/request-changes`, { comment });
+    return unwrap(res);
+  },
+
+  // Legacy employee-side rejection (role:superadmin|employee). Kept for the
+  // mobile reviewer flow; the owner dashboard uses requestChanges instead.
   reject: async (id, rejection_reason) => {
     const res = await axiosInstance.post(`/mobile/business-cards/${id}/reject`, { rejection_reason });
     return unwrap(res);

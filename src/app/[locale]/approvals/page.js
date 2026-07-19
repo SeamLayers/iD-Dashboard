@@ -9,12 +9,13 @@ import {
   useBusinessCards,
   useEmployees,
   useApproveBusinessCard,
-  useRejectBusinessCard,
+  useRequestBusinessCardChanges,
+  usePublishBusinessCard,
 } from '@/shared/api/hooks';
 import { useAuth } from '@/shared/auth/AuthProvider';
 import { useConfirm } from '@/shared/confirm/ConfirmProvider';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
-import { ApprovalsTable, ApprovalPreviewDialog, RejectReasonDialog } from '@/components/features/approvals/ApprovalsSections';
+import { ApprovalsTable, ApprovalPreviewDialog, RequestChangesDialog } from '@/components/features/approvals/ApprovalsSections';
 
 function formatSubmitted(value) {
   if (!value) return '—';
@@ -43,22 +44,33 @@ function resolveCardAccent(data) {
 }
 
 /**
- * Card approvals queue — real submitted business cards awaiting review.
+ * Card approvals queue — the owner reviews what each employee personalised.
  *
  * Cards with status `submitted` are pulled from GET /dashboard/business-cards
- * and joined against the employees list for display. Approve / reject call the
- * real /mobile/business-cards/{id}/approve|reject endpoints, which only
- * superadmins (and the mobile reviewer employee) may perform — so the review
- * actions are gated on the `business_card.approve` / `.reject` permissions.
+ * and joined against the employees list for display. The owner either approves
+ * (POST /dashboard/business-cards/{id}/approve) or sends the card back with a
+ * comment (POST .../request-changes). The legacy /mobile reject route is
+ * deliberately not offered here — it is scoped to superadmin|employee and
+ * would 403 for a company owner.
  */
 export default function ApprovalsPage() {
   const t = useTranslations('Approvals');
   const tCommon = useTranslations('Common');
-  const { hasPermission } = useAuth();
+  const { hasPermission, hasRole } = useAuth();
   const confirm = useConfirm();
-  const canApprove = hasPermission('business_card.approve');
-  const canReject = hasPermission('business_card.reject');
-  const canReview = canApprove || canReject;
+  // Role OR permission. The backend deliberately dropped the
+  // permission:business_card.approve middleware for these endpoints so owners
+  // can review without anyone re-running the roles seeder on the server —
+  // gating the buttons on the permission alone just moved that fragility to
+  // the client, hiding the review actions from the very person who owns them.
+  const isReviewer = hasRole(['superadmin', 'owner']);
+  const canApprove = isReviewer || hasPermission('business_card.approve');
+  // Sending a card back is part of the same review capability; either review
+  // permission is enough to leave a comment.
+  const canRequestChanges = isReviewer
+    || hasPermission('business_card.approve')
+    || hasPermission('business_card.reject');
+  const canReview = canApprove || canRequestChanges;
 
   const {
     data: cardsData,
@@ -70,12 +82,13 @@ export default function ApprovalsPage() {
   const { data: employeesData } = useEmployees({ per_page: 200 });
 
   const approveMutation = useApproveBusinessCard();
-  const rejectMutation = useRejectBusinessCard();
+  const requestChangesMutation = useRequestBusinessCardChanges();
+  const publishMutation = usePublishBusinessCard();
 
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState('');
+  const [isRequestChangesOpen, setIsRequestChangesOpen] = useState(false);
+  const [comment, setComment] = useState('');
 
   const employeesById = useMemo(() => {
     const rows = Array.isArray(employeesData?.data) ? employeesData.data : [];
@@ -98,7 +111,7 @@ export default function ApprovalsPage() {
         id: card.id,
         name: emp.name || data.name || `#${card.employee_id}`,
         jobTitle: emp.position || data.position || data.title || data.role || '',
-        bio: data.bio || data.about || '',
+        bio: card.bio || data.bio || data.about || '',
         department: deptName || (typeof data.department === 'string' ? data.department : '') || '',
         branch: branchName || (typeof data.branch === 'string' ? data.branch : '') || '',
         company: emp.company?.name || (typeof data.company === 'string' ? data.company : '') || '',
@@ -106,17 +119,22 @@ export default function ApprovalsPage() {
         submittedAt: formatSubmitted(card.submitted_at || card.created_at),
         status: card.status || 'submitted',
         phone: emp.phone || data.phone || '',
-        secondaryPhone: data.secondary_phone || data.secondaryPhone || '',
+        secondaryPhone: card.secondary_phone || data.secondary_phone || data.secondaryPhone || '',
         email: emp.email || data.email || '',
         linkedin: data.linkedin || data.linkedIn || '',
         twitter: data.twitter || data.x || '',
         github: data.github || '',
         address: data.address || branchName || '',
-        accentColor: resolveCardAccent(data),
+        // `effective_theme` is the template theme with the employee's overrides
+        // already merged — it is what the published card will actually look like.
+        theme: card.effective_theme || card.theme || null,
+        accentColor: card.effective_theme?.accent || card.effective_theme?.primary || resolveCardAccent(data),
+        reviewComment: card.review_comment || '',
         publicUrl: card.public_url || '',
         qrCode: card.qr_code || '',
         templateName: card.template?.name || '',
-        avatar: emp.logo || data.image || data.photo || '',
+        photo: card.photo || '',
+        avatar: card.photo || emp.logo || data.image || data.photo || '',
       };
     });
   }, [cardsData, employeesById]);
@@ -124,18 +142,18 @@ export default function ApprovalsPage() {
   const closePreviewModal = () => {
     setSelectedRequest(null);
     setIsFlipped(false);
-    setIsRejectDialogOpen(false);
-    setRejectReason('');
+    setIsRequestChangesOpen(false);
+    setComment('');
   };
 
-  const openRejectDialog = () => {
-    setRejectReason('');
-    setIsRejectDialogOpen(true);
+  const openRequestChangesDialog = () => {
+    setComment('');
+    setIsRequestChangesOpen(true);
   };
 
-  const closeRejectDialog = () => {
-    setIsRejectDialogOpen(false);
-    setRejectReason('');
+  const closeRequestChangesDialog = () => {
+    setIsRequestChangesOpen(false);
+    setComment('');
   };
 
   const handleApprove = async (id) => {
@@ -144,6 +162,11 @@ export default function ApprovalsPage() {
     if (!ok) return;
     try {
       await approveMutation.mutateAsync(id);
+      // Approve only sets status='approved'; the card is not reachable at its
+      // public URL until it is published. Chained here so the owner's single
+      // "Approve (Publish)" click does what the label promises — otherwise the
+      // card silently never went live and the employee's QR stayed empty.
+      await publishMutation.mutateAsync(id);
       toast.success(t('approveSuccess'));
       closePreviewModal();
     } catch (err) {
@@ -151,18 +174,18 @@ export default function ApprovalsPage() {
     }
   };
 
-  const handleConfirmRejection = async (event) => {
-    // RejectReasonDialog's own form handler already preventDefaults and calls
+  const handleConfirmRequestChanges = async (event) => {
+    // RequestChangesDialog's own form handler already preventDefaults and calls
     // this with no argument, so `event` is optional here.
     event?.preventDefault();
     if (!selectedRequest) return;
-    const trimmedReason = rejectReason.trim();
-    if (!trimmedReason) return;
-    const ok = await confirm({ action: 'reject', name: selectedRequest.name });
+    const trimmed = comment.trim();
+    if (!trimmed) return;
+    const ok = await confirm({ action: 'requestChanges', name: selectedRequest.name });
     if (!ok) return;
     try {
-      await rejectMutation.mutateAsync({ id: selectedRequest.id, reason: trimmedReason });
-      toast.success(t('rejectSuccess'));
+      await requestChangesMutation.mutateAsync({ id: selectedRequest.id, comment: trimmed });
+      toast.success(t('requestChangesSuccess'));
       closePreviewModal();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -203,8 +226,8 @@ export default function ApprovalsPage() {
           onPreview={(request) => {
             setSelectedRequest(request);
             setIsFlipped(false);
-            setIsRejectDialogOpen(false);
-            setRejectReason('');
+            setIsRequestChangesOpen(false);
+            setComment('');
           }}
         />
       )}
@@ -212,26 +235,25 @@ export default function ApprovalsPage() {
       <ApprovalPreviewDialog
         t={t}
         selectedRequest={selectedRequest}
-        isOpen={Boolean(selectedRequest) && !isRejectDialogOpen}
+        isOpen={Boolean(selectedRequest) && !isRequestChangesOpen}
         onClose={closePreviewModal}
         onApprove={handleApprove}
-        onOpenReject={openRejectDialog}
+        onOpenRequestChanges={openRequestChangesDialog}
         isFlipped={isFlipped}
         setIsFlipped={setIsFlipped}
         canApprove={canApprove}
-        canReject={canReject}
+        canRequestChanges={canRequestChanges}
         isApproving={approveMutation.isPending}
       />
 
-      <RejectReasonDialog
-        t={t}
-        selectedRequest={selectedRequest}
-        isOpen={Boolean(selectedRequest) && isRejectDialogOpen}
-        reason={rejectReason}
-        setReason={setRejectReason}
-        onClose={closeRejectDialog}
-        onConfirm={handleConfirmRejection}
-        isPending={rejectMutation.isPending}
+      <RequestChangesDialog
+        isOpen={Boolean(selectedRequest) && isRequestChangesOpen}
+        name={selectedRequest?.name}
+        comment={comment}
+        setComment={setComment}
+        onClose={closeRequestChangesDialog}
+        onConfirm={handleConfirmRequestChanges}
+        isPending={requestChangesMutation.isPending}
       />
     </div>
   );

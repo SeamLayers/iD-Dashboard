@@ -31,6 +31,9 @@ const ACTION_TO_GATE = {
   deactivate: 'workflow',
   approve: 'workflow',
   reject: 'workflow',
+  // Sending a card back for edits — a normal review outcome, not a rejection,
+  // so it deliberately stays out of DANGER_ACTIONS.
+  requestChanges: 'workflow',
   removeUser: 'workflow',
   discard: 'workflow',
 };

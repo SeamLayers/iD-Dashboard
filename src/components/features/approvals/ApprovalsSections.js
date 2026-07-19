@@ -1,10 +1,16 @@
 "use client";
 
+import { useTranslations } from 'next-intl';
 import {
-  Check, X, Eye, Clock, Phone, Mail, Linkedin, MapPin, RotateCcw, AlertTriangle,
-  Building2, Hash, Briefcase, Twitter, Github, Globe,
+  Check, X, Eye, Clock, Phone, Mail, Linkedin, MapPin, RotateCcw, MessageSquare,
+  Building2, Hash, Briefcase, Twitter, Github, Globe, Palette, Image as ImageIcon,
 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
+
+const COMMENT_MAX = 1000;
+
+// Order the theme keys the way the employee sees them in the app.
+const THEME_KEYS = ['background', 'text', 'primary', 'accent'];
 
 const FALLBACK_PRIMARY = 'var(--accent-cyan, #00C4CC)';
 const FALLBACK_ACCENT = 'var(--accent-teal, #00999E)';
@@ -58,7 +64,11 @@ export function ApprovalsTable({ t, approvalRequests, onPreview }) {
               <tr key={request.id}>
                 <td>
                   <div className="emp-info">
-                    <div className="emp-avatar">{initialsOf(request.name)}</div>
+                    <div className="emp-avatar cardrev-mini-avatar">
+                      {request.photo
+                        ? <img src={request.photo} alt={request.name} />
+                        : initialsOf(request.name)}
+                    </div>
                     <div>
                       <div className="emp-name">{request.name}</div>
                       <div className="emp-email">{request.department || '—'}</div>
@@ -88,7 +98,7 @@ export function ApprovalsTable({ t, approvalRequests, onPreview }) {
   );
 }
 
-export function ApprovalPreviewDialog({ t, selectedRequest, isOpen, onClose, onApprove, onOpenReject, isFlipped, setIsFlipped, canApprove = true, canReject = true, isApproving = false }) {
+export function ApprovalPreviewDialog({ t, selectedRequest, isOpen, onClose, onApprove, onOpenRequestChanges, isFlipped, setIsFlipped, canApprove = true, canRequestChanges = true, isApproving = false }) {
   if (!selectedRequest) {
     return null;
   }
@@ -101,11 +111,18 @@ export function ApprovalPreviewDialog({ t, selectedRequest, isOpen, onClose, onA
   const twitterHref = r.twitter ? (isUrl(r.twitter) ? r.twitter : `https://x.com/${handle(r.twitter)}`) : null;
   const githubHref = r.github ? (isUrl(r.github) ? r.github : `https://github.com/${handle(r.github)}`) : null;
 
-  const hasContact = r.phone || r.secondaryPhone || r.email;
+  const themeEntries = THEME_KEYS
+    .map((key) => [key, r.theme?.[key]])
+    .filter(([, value]) => Boolean(value));
+
+  // The second phone lives in the personalisation block — it is the employee's own addition.
+  const hasContact = r.phone || r.email;
   const hasCompany = r.company || r.department || r.branch || r.employeeNumber;
   const hasLinks = r.linkedin || r.twitter || r.github || r.publicUrl;
-  const hasStyle = r.accentColor || r.templateName;
-  const hasAnything = hasContact || hasCompany || hasLinks || hasStyle || r.bio;
+  const hasStyle = r.templateName;
+  // What the employee personalised — the whole reason the owner is here.
+  const hasPersonalisation = r.photo || r.bio || r.secondaryPhone || themeEntries.length > 0;
+  const hasAnything = hasContact || hasCompany || hasLinks || hasStyle || hasPersonalisation || r.bio;
 
   return (
     <Dialog
@@ -193,13 +210,58 @@ export function ApprovalPreviewDialog({ t, selectedRequest, isOpen, onClose, onA
             {r.templateName && <span><Briefcase size={13} /> {r.templateName}</span>}
           </div>
 
-          {r.bio && <p className="cardrev-bio">{r.bio}</p>}
+          {r.reviewComment && (
+            <div className="cardrev-comment">
+              <MessageSquare size={14} />
+              <div>
+                <strong>{t('lastComment')}</strong>
+                <p>{r.reviewComment}</p>
+              </div>
+            </div>
+          )}
+
+          {hasPersonalisation && (
+            <section className="cardrev-group cardrev-personal">
+              <h4 className="cardrev-group-title">{t('sectionPersonalisation')}</h4>
+              {r.photo && (
+                <div className="cardrev-row">
+                  <span className="cardrev-row-ico" style={{ color: accent }}><ImageIcon size={15} /></span>
+                  <span className="cardrev-row-label">{t('fieldPhoto')}</span>
+                  <span className="cardrev-row-val">
+                    <img className="cardrev-photo" src={r.photo} alt={r.name} />
+                  </span>
+                </div>
+              )}
+              <ReviewRow icon={Phone} label={t('fieldSecondPhone')} value={r.secondaryPhone} href={r.secondaryPhone ? `tel:${r.secondaryPhone}` : null} accent={accent} />
+              {themeEntries.length > 0 && (
+                <div className="cardrev-row">
+                  <span className="cardrev-row-ico" style={{ color: accent }}><Palette size={15} /></span>
+                  <span className="cardrev-row-label">{t('fieldColors')}</span>
+                  <span className="cardrev-row-val cardrev-swatches">
+                    {themeEntries.map(([key, value]) => (
+                      <span key={key} className="cardrev-swatch-chip" title={`${t(`color_${key}`)} ${value}`}>
+                        <span className="cardrev-swatch" style={{ background: value }} />
+                        <span>{t(`color_${key}`)}</span>
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              )}
+              {r.bio && (
+                <div className="cardrev-row cardrev-row-stack">
+                  <span className="cardrev-row-label">{t('fieldBio')}</span>
+                  <p className="cardrev-bio">{r.bio}</p>
+                </div>
+              )}
+            </section>
+          )}
+
+          {!hasPersonalisation && r.bio && <p className="cardrev-bio">{r.bio}</p>}
 
           {hasContact && (
             <section className="cardrev-group">
               <h4 className="cardrev-group-title">{t('sectionContact')}</h4>
               <ReviewRow icon={Phone} label={t('fieldPhone')} value={r.phone} href={r.phone ? `tel:${r.phone}` : null} accent={accent} />
-              <ReviewRow icon={Phone} label={t('fieldSecondPhone')} value={r.secondaryPhone} href={r.secondaryPhone ? `tel:${r.secondaryPhone}` : null} accent={accent} />
               <ReviewRow icon={Mail} label={t('fieldEmail')} value={r.email} href={r.email ? `mailto:${r.email}` : null} accent={accent} />
             </section>
           )}
@@ -227,13 +289,6 @@ export function ApprovalPreviewDialog({ t, selectedRequest, isOpen, onClose, onA
           {hasStyle && (
             <section className="cardrev-group">
               <h4 className="cardrev-group-title">{t('sectionStyle')}</h4>
-              {r.accentColor && (
-                <div className="cardrev-row">
-                  <span className="cardrev-row-ico"><span className="cardrev-swatch" style={{ background: r.accentColor }} /></span>
-                  <span className="cardrev-row-label">{t('accentColor')}</span>
-                  <span className="cardrev-row-val" style={{ textTransform: 'uppercase' }}>{r.accentColor}</span>
-                </div>
-              )}
               <ReviewRow icon={Briefcase} label={t('template')} value={r.templateName} accent={accent} />
             </section>
           )}
@@ -242,11 +297,11 @@ export function ApprovalPreviewDialog({ t, selectedRequest, isOpen, onClose, onA
         </div>
 
         <div className="cardrev-actions">
-          {canApprove || canReject ? (
+          {canApprove || canRequestChanges ? (
             <>
-              {canReject && (
-                <button className="btn-danger" style={{ flex: 1, justifyContent: 'center', padding: '0.8rem' }} onClick={onOpenReject}>
-                  <X size={18} /> <span>{t('reject')}</span>
+              {canRequestChanges && (
+                <button className="btn-outline" style={{ flex: 1, justifyContent: 'center', padding: '0.8rem' }} onClick={onOpenRequestChanges}>
+                  <MessageSquare size={18} /> <span>{t('requestChanges')}</span>
                 </button>
               )}
               {canApprove && (
@@ -264,94 +319,64 @@ export function ApprovalPreviewDialog({ t, selectedRequest, isOpen, onClose, onA
   );
 }
 
-export function RejectReasonDialog({ t, selectedRequest, isOpen, reason, setReason, onClose, onConfirm }) {
-  if (!selectedRequest) {
-    return null;
-  }
+/**
+ * "Request changes" — the owner's way of sending a personalised card back to
+ * the employee with a comment. Self-contained (reads its own Approvals
+ * namespace) so both the Approvals queue and the Business Cards grid can use it.
+ */
+export function RequestChangesDialog({ isOpen, name, comment, setComment, onClose, onConfirm, isPending = false }) {
+  const t = useTranslations('Approvals');
+  const tCommon = useTranslations('Common');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (reason.trim()) {
+    if (comment.trim()) {
       onConfirm();
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog
-      isOpen={isOpen}
-      onClose={onClose}
-      panelClassName="modal-box glass-panel"
-      panelStyle={{ border: '1px solid rgba(239, 83, 80, 0.3)', boxShadow: '0 8px 32px 0 rgba(239, 83, 80, 0.15)' }}
-    >
+    <Dialog isOpen={isOpen} onClose={onClose} panelClassName="modal-box glass-panel modal-form">
       <div className="modal-header">
-        <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#EF5350' }}>
-          <AlertTriangle size={20} />
-          {t('rejectCardApproval')}
+        <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <MessageSquare size={20} />
+          {t('requestChangesTitle')}
         </h2>
-        <button className="modal-close" onClick={onClose}><X size={18} /></button>
+        <button className="modal-close" type="button" onClick={onClose}><X size={18} /></button>
       </div>
 
-      <p className="modal-desc" style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>
-        {t('reasonForRejectionPlaceholder')?.split('...')[0] || `You are rejecting the card layout submitted by ${selectedRequest.name}`}
-        <strong style={{ color: 'var(--text-primary)', marginLeft: '4px' }}>
-          {selectedRequest.name}
-        </strong>
-      </p>
+      <p className="modal-desc">{t('requestChangesDesc', { name: name || '' })}</p>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '2rem' }}>
-          <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-muted)' }} htmlFor="rejection-reason">
-            {t('reasonForRejection')}
-          </label>
+      <form onSubmit={handleSubmit}>
+        <div className="modal-field">
+          <label htmlFor="request-changes-comment">{t('commentLabel')}</label>
           <textarea
-            id="rejection-reason"
+            id="request-changes-comment"
+            className="modal-input"
             required
             autoFocus
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-            placeholder={t('reasonForRejectionPlaceholder')}
-            style={{
-              width: '100%',
-              minHeight: '130px',
-              background: 'rgba(var(--color-black-rgb), 0.2)',
-              border: '1px solid rgba(239, 83, 80, 0.2)',
-              borderRadius: '12px',
-              padding: '1rem',
-              color: 'var(--text-primary)',
-              fontSize: '0.9rem',
-              outline: 'none',
-              transition: 'all 0.3s ease',
-              resize: 'none'
-            }}
-            onFocus={(e) => {
-              e.target.style.borderColor = '#EF5350';
-              e.target.style.boxShadow = '0 0 0 3px rgba(239, 83, 80, 0.1)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = 'rgba(239, 83, 80, 0.2)';
-              e.target.style.boxShadow = 'none';
-            }}
+            rows={5}
+            maxLength={COMMENT_MAX}
+            value={comment}
+            onChange={(event) => setComment(event.target.value)}
+            placeholder={t('commentPlaceholder')}
             dir="auto"
+            style={{ resize: 'vertical', minHeight: '130px' }}
           />
+          <small style={{ display: 'block', marginTop: '0.35rem', textAlign: 'end', color: 'var(--text-muted)', fontSize: '0.78rem' }} dir="ltr">
+            {comment.length}/{COMMENT_MAX}
+          </small>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button type="button" className="btn-outline" style={{ flex: 1, justifyContent: 'center' }} onClick={onClose}>
-            {t('cancel')}
+        <div className="modal-actions">
+          <button type="button" className="btn-outline" onClick={onClose} disabled={isPending}>
+            {tCommon('cancel')}
           </button>
-          <button
-            type="submit"
-            className="btn-danger"
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              opacity: !reason.trim() ? 0.5 : 1,
-              cursor: !reason.trim() ? 'not-allowed' : 'pointer',
-              pointerEvents: !reason.trim() ? 'none' : 'auto'
-            }}
-            disabled={!reason.trim()}
-          >
-            {t('confirmRejection')}
+          <button type="submit" className="btn-primary" disabled={isPending || !comment.trim()}>
+            <MessageSquare size={14} />
+            <span>{isPending ? tCommon('saving') : t('confirmRequestChanges')}</span>
           </button>
         </div>
       </form>

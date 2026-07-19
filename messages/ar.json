@@ -478,7 +478,7 @@
   },
   "Approvals": {
     "title": "الموافقات على البطاقات",
-    "subtitle": "مراجعة والموافقة على بطاقات الموظفين المخصصة من تطبيق الهاتف.",
+    "subtitle": "راجع ما خصّصه الموظفون في بطاقاتهم، ثم اعتمدها أو أعِدها إليهم.",
     "preview": "معاينة البطاقة",
     "approve": "موافقة (نشر)",
     "reject": "رفض",
@@ -492,9 +492,9 @@
     "status_approved": "تمت الموافقة",
     "approveSuccess": "تمت الموافقة على البطاقة ونشرها.",
     "rejectSuccess": "تمت إعادة البطاقة مع ملاحظاتك.",
-    "reviewerNote": "تتم مراجعة البطاقات والموافقة عليها من قبل المراجِع المُعيّن في التطبيق. يمكنك الاطلاع على المعلّق هنا.",
+    "reviewerNote": "لا تملك صلاحية مراجعة البطاقات. يمكنك الاطلاع على المعلّق هنا.",
     "reviewCardDetails": "مراجعة تفاصيل البطاقة",
-    "reviewIntro": "هذا بالضبط ما أرسله {name} من التطبيق. اعتمد لنشرها أو ارفض مع ذكر السبب.",
+    "reviewIntro": "هذا بالضبط ما خصّصه {name} من التطبيق. اعتمده أو أعِده مع ملاحظة.",
     "sectionContact": "معلومات التواصل",
     "sectionCompany": "الشركة والمسمى",
     "sectionLinks": "الروابط",
@@ -516,7 +516,22 @@
     "template": "القالب",
     "submittedLabel": "أُرسلت",
     "scanToConnect": "امسح للتواصل",
-    "nothingProvided": "لم تتم إضافة تفاصيل أخرى."
+    "nothingProvided": "لم تتم إضافة تفاصيل أخرى.",
+    "requestChanges": "طلب تعديلات",
+    "requestChangesTitle": "طلب تعديلات على هذه البطاقة",
+    "requestChangesDesc": "وضّح لـ {name} ما الذي يحتاج إلى تعديل. سيصله إشعار بملاحظتك ويمكنه تعديل البطاقة وإعادة إرسالها.",
+    "commentLabel": "ملاحظة للموظف",
+    "commentPlaceholder": "مثال: يرجى استخدام صورة بخلفية سادة.",
+    "confirmRequestChanges": "إعادة البطاقة مع الملاحظة",
+    "requestChangesSuccess": "تمت إعادة البطاقة مع ملاحظتك.",
+    "lastComment": "ملاحظتك السابقة",
+    "sectionPersonalisation": "ما قام الموظف بتخصيصه",
+    "fieldPhoto": "الصورة",
+    "fieldColors": "الألوان",
+    "color_background": "الخلفية",
+    "color_text": "النص",
+    "color_primary": "اللون الأساسي",
+    "color_accent": "اللون المميز"
   },
   "Demo": {
     "demoReset": "إعادة ضبط العرض",
@@ -653,7 +668,11 @@
     "status_rejected": "مرفوضة",
     "status_published": "منشورة",
     "openPublicCard": "فتح البطاقة العامة",
-    "copyPublicLink": "نسخ رابط البطاقة"
+    "copyPublicLink": "نسخ رابط البطاقة",
+    "requestChanges": "طلب تعديلات",
+    "requestChangesSuccess": "تمت إعادة البطاقة مع ملاحظتك.",
+    "customised": "مُخصصة",
+    "status_changes_requested": "بانتظار التعديل"
   },
   "BusinessCardTemplates": {
     "title": "تصاميم البطاقات",
@@ -797,6 +816,10 @@
     "discard_title": "تجاهل التعديلات؟",
     "discard_desc": "لديك تعديلات غير محفوظة، وسيتم فقدانها عند الإغلاق.",
     "discard_descNamed": "لديك تعديلات غير محفوظة على “{name}”، وسيتم فقدانها عند الإغلاق.",
-    "discard_cta": "نعم، تجاهل"
+    "discard_cta": "نعم، تجاهل",
+    "requestChanges_title": "إعادة البطاقة للتعديل؟",
+    "requestChanges_desc": "سيصل تعليقك إلى الموظف ليتمكن من تعديل بطاقته مرة أخرى.",
+    "requestChanges_descNamed": "إعادة بطاقة {name} مع تعليقك ليقوم بتحديثها؟",
+    "requestChanges_cta": "نعم، إعادتها"
   }
 }

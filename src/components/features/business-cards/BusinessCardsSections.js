@@ -16,6 +16,8 @@ import {
   Loader2,
   ExternalLink,
   Link2,
+  MessageSquare,
+  Sparkles,
 } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
 import RowActionsMenu from '@/components/ui/RowActionsMenu';
@@ -23,6 +25,7 @@ import RowActionsMenu from '@/components/ui/RowActionsMenu';
 const STATUS_PILL_CLASS = {
   draft: 'pill pill-muted',
   submitted: 'pill pill-warning',
+  changes_requested: 'pill pill-attention',
   approved: 'pill pill-success',
   rejected: 'pill pill-danger',
   published: 'pill pill-published',
@@ -71,6 +74,7 @@ export function BusinessCardCard({
   onPublish,
   onDeactivate,
   onDelete,
+  onRequestChanges,
 }) {
   const isMenuOpen = openMenuId === card.id;
   const status = card.status || 'draft';
@@ -84,13 +88,20 @@ export function BusinessCardCard({
   const canSubmit = status === 'draft';
   const canPublish = status === 'approved';
   const canDeactivate = status === 'published' && card.is_active;
+  const canRequestChanges = status === 'submitted';
+
+  const photo = card.photo || '';
+  // Anything the employee touched in the app marks the card as personalised.
+  const isCustomized = Boolean(
+    card.customized_at || photo || card.bio || card.secondary_phone || card.theme
+  );
 
   return (
     <div className={`entity-card bc-card glass-panel ${!card.is_active ? 'is-inactive' : ''}`}>
       <div className="bc-card-top">
         <div className="bc-card-top-info">
           <div className="entity-avatar">
-            <CreditCard size={22} />
+            {photo ? <img src={photo} alt={name} /> : <CreditCard size={22} />}
           </div>
           <div style={{ minWidth: 0 }}>
             <p className="entity-name">{name}</p>
@@ -105,6 +116,11 @@ export function BusinessCardCard({
           {canSubmit && (
             <button className="kebab-item" onClick={() => { setOpenMenuId(null); onSubmit(card); }}>
               <Send size={14} /><span>{t('submitForReview')}</span>
+            </button>
+          )}
+          {canRequestChanges && (
+            <button className="kebab-item" onClick={() => { setOpenMenuId(null); onRequestChanges(card); }}>
+              <MessageSquare size={14} /><span>{t('requestChanges')}</span>
             </button>
           )}
           {canPublish && (
@@ -150,6 +166,12 @@ export function BusinessCardCard({
 
       <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <StatusPill status={status} t={t} />
+        {isCustomized && (
+          <span className="pill pill-info">
+            <Sparkles size={11} style={{ display: 'inline', marginInlineEnd: 3, verticalAlign: '-1px' }} />
+            {t('customised')}
+          </span>
+        )}
         {card.is_active === false && status === 'published' && (
           <span className="pill pill-muted">{t('deactivate')}</span>
         )}
@@ -159,6 +181,13 @@ export function BusinessCardCard({
         <div className="bc-card-rejection">
           <AlertCircle size={13} style={{ display: 'inline', marginInlineEnd: 4, verticalAlign: '-2px' }} />
           {card.rejection_reason}
+        </div>
+      )}
+
+      {status === 'changes_requested' && card.review_comment && (
+        <div className="bc-card-rejection bc-card-comment">
+          <MessageSquare size={13} style={{ display: 'inline', marginInlineEnd: 4, verticalAlign: '-2px' }} />
+          {card.review_comment}
         </div>
       )}
 

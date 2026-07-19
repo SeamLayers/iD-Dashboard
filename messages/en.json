@@ -478,7 +478,7 @@
   },
   "Approvals": {
     "title": "Card Approvals",
-    "subtitle": "Review and approve employee cards customized from the mobile app.",
+    "subtitle": "Review what employees personalised on their cards, then approve or send it back.",
     "preview": "Preview Card",
     "approve": "Approve (Publish)",
     "reject": "Reject",
@@ -492,9 +492,9 @@
     "status_approved": "Approved",
     "approveSuccess": "Card approved and published.",
     "rejectSuccess": "Card sent back with your feedback.",
-    "reviewerNote": "Cards are reviewed and approved by the assigned reviewer in the mobile app. You can see what is pending here.",
+    "reviewerNote": "You do not have permission to review cards. You can see what is pending here.",
     "reviewCardDetails": "Review Card Details",
-    "reviewIntro": "Here is exactly what {name} submitted from the mobile app. Approve to publish it, or reject with a reason.",
+    "reviewIntro": "Here is exactly what {name} personalised in the mobile app. Approve it, or send it back with a comment.",
     "sectionContact": "Contact",
     "sectionCompany": "Company & Role",
     "sectionLinks": "Links",
@@ -516,7 +516,22 @@
     "template": "Template",
     "submittedLabel": "Submitted",
     "scanToConnect": "Scan to connect",
-    "nothingProvided": "No extra details were provided."
+    "nothingProvided": "No extra details were provided.",
+    "requestChanges": "Request changes",
+    "requestChangesTitle": "Request changes to this card",
+    "requestChangesDesc": "Tell {name} what to fix. They get a notification with your comment and can edit and resubmit the card.",
+    "commentLabel": "Comment for the employee",
+    "commentPlaceholder": "e.g. Please use a photo with a plain background.",
+    "confirmRequestChanges": "Send back with comment",
+    "requestChangesSuccess": "Card sent back with your comment.",
+    "lastComment": "Your last comment",
+    "sectionPersonalisation": "What the employee personalised",
+    "fieldPhoto": "Photo",
+    "fieldColors": "Colours",
+    "color_background": "Background",
+    "color_text": "Text",
+    "color_primary": "Primary",
+    "color_accent": "Accent"
   },
   "Demo": {
     "demoReset": "Reset Demo",
@@ -653,7 +668,11 @@
     "status_rejected": "Rejected",
     "status_published": "Published",
     "openPublicCard": "Open public card",
-    "copyPublicLink": "Copy public link"
+    "copyPublicLink": "Copy public link",
+    "requestChanges": "Request changes",
+    "requestChangesSuccess": "Card sent back with your comment.",
+    "customised": "Customised",
+    "status_changes_requested": "Changes requested"
   },
   "BusinessCardTemplates": {
     "title": "Card Designs",
@@ -797,6 +816,10 @@
     "discard_title": "Discard your changes?",
     "discard_desc": "You have unsaved changes. Closing now loses them.",
     "discard_descNamed": "You have unsaved changes to “{name}”. Closing now loses them.",
-    "discard_cta": "Yes, discard"
+    "discard_cta": "Yes, discard",
+    "requestChanges_title": "Send this card back?",
+    "requestChanges_desc": "The employee gets your comment and can edit their card again.",
+    "requestChanges_descNamed": "Send {name}’s card back with your comment so they can update it?",
+    "requestChanges_cta": "Yes, send it back"
   }
 }
