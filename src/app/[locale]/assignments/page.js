@@ -13,6 +13,7 @@ import {
   useProjects,
 } from '@/shared/api/hooks';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
+import { useConfirm } from '@/shared/confirm/ConfirmProvider';
 import Pagination from '@/components/ui/Pagination';
 import {
   AssignmentsFilters,
@@ -24,6 +25,7 @@ import {
 export default function AssignmentsPage() {
   const t = useTranslations('Assignments');
   const tCommon = useTranslations('Common');
+  const confirm = useConfirm();
 
   const [page, setPage] = useState(1);
   const [employeeId, setEmployeeId] = useState('');
@@ -56,6 +58,8 @@ export default function AssignmentsPage() {
     : null;
 
   const handleSubmit = async (payload) => {
+    const ok = await confirm({ action: 'create' });
+    if (!ok) return;
     try {
       await createMutation.mutateAsync(payload);
       toast.success(t('createSuccess'));

@@ -355,10 +355,13 @@ function RoleUsersTab({ t, users, onAssignUsers, isAssignPending, canManage = tr
     setCurrentIds(users.map((u) => u.id));
   }, [users]);
 
-  const handleRemove = (userId) => {
+  // onAssignUsers is async (it awaits a confirmation), so the optimistic local
+  // update has to wait for it to resolve — updating first left the user looking
+  // removed after they cancelled, with the server never touched.
+  const handleRemove = async (userId) => {
     const next = currentIds.filter((id) => id !== userId);
-    setCurrentIds(next);
-    onAssignUsers(next);
+    const saved = await onAssignUsers(next, { action: 'removeUser', name: users.find((u) => u.id === userId)?.name });
+    if (saved !== false) setCurrentIds(next);
   };
 
   return (
@@ -401,9 +404,11 @@ function RoleUsersTab({ t, users, onAssignUsers, isAssignPending, canManage = tr
         isOpen={showAdd}
         onClose={() => setShowAdd(false)}
         currentIds={currentIds}
-        onSave={(ids) => {
-          onAssignUsers(ids);
-          setShowAdd(false);
+        onSave={async (ids) => {
+          // Awaited: closing straight away dismissed the picker before the
+          // confirmation had been answered, losing the whole selection.
+          const saved = await onAssignUsers(ids);
+          if (saved !== false) setShowAdd(false);
         }}
         isPending={isAssignPending}
       />

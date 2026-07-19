@@ -8,6 +8,16 @@ import {
 } from 'lucide-react';
 import { normalizeSaudiPhone } from '@/shared/utils/phone';
 
+/** Inline validation message rendered under the field it belongs to. */
+function FieldError({ message }) {
+  if (!message) return null;
+  return (
+    <p className="empf-field-error" role="alert">
+      <AlertCircle size={12} /> {message}
+    </p>
+  );
+}
+
 function getInitials(name = '') {
   return name.split(' ').map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
 }
@@ -32,6 +42,7 @@ export default function EmployeeForm({
   onSubmit,
   onCancel,
   isPending = false,
+  fieldErrors,
 }) {
   const t = useTranslations('Employees');
   const tCommon = useTranslations('Common');
@@ -46,11 +57,13 @@ export default function EmployeeForm({
   const [position, setPosition] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [phoneError, setPhoneError] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('active');
   const [logo, setLogo] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
+  // Validation messages, keyed by the same field names the API uses so a 422
+  // can drop straight into the same map.
+  const [errors, setErrors] = useState({});
   const fileRef = useRef(null);
 
   useEffect(() => {
@@ -69,7 +82,18 @@ export default function EmployeeForm({
     setStatus(initial?.status || 'active');
     setLogo(null);
     setLogoPreview(initial?.logo || null);
+    setErrors({});
   }, [initial, companies]);
+
+  // Server-side 422s arrive per field and are merged in, so every invalid
+  // input is marked at once instead of only the first one reaching a toast.
+  useEffect(() => {
+    if (fieldErrors && Object.keys(fieldErrors).length) {
+      setErrors((prev) => ({ ...prev, ...fieldErrors }));
+    }
+  }, [fieldErrors]);
+
+  const clearError = (field) => setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
 
   const showCompanyPicker = isSuperadmin && companies.length > 1;
   const filteredBranches = companyId ? branches.filter((b) => String(b.company_id) === String(companyId)) : branches;
@@ -78,6 +102,7 @@ export default function EmployeeForm({
   const handleFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    clearError('logo');
     setLogo(file);
     const reader = new FileReader();
     reader.onload = (ev) => setLogoPreview(ev.target?.result || null);
@@ -86,7 +111,7 @@ export default function EmployeeForm({
 
   const validatePhone = (value) => {
     const { valid } = normalizeSaudiPhone(value);
-    setPhoneError(valid ? '' : t('phoneInvalid'));
+    setErrors((prev) => ({ ...prev, phone: valid ? undefined : t('phoneInvalid') }));
     return valid;
   };
 
@@ -96,7 +121,7 @@ export default function EmployeeForm({
     // number — block submit and surface an inline error otherwise.
     const { valid: phoneValid, e164 } = normalizeSaudiPhone(phone);
     if (!phoneValid) {
-      setPhoneError(t('phoneInvalid'));
+      setErrors((prev) => ({ ...prev, phone: t('phoneInvalid') }));
       return;
     }
     // Never send user_id (provisioned server-side). Blank optional fields are
@@ -157,19 +182,23 @@ export default function EmployeeForm({
           <div className="empf-fields">
             <div className="empf-field">
               <label>{t('name')} <em>*</em></label>
-              <input className="empf-input" required value={name} onChange={(e) => setName(e.target.value)} placeholder={t('namePlaceholder')} />
+              <input className="empf-input" required value={name} onChange={(e) => { setName(e.target.value); clearError('name'); }} placeholder={t('namePlaceholder')} aria-invalid={Boolean(errors.name)} />
+              <FieldError message={errors.name} />
             </div>
             <div className="empf-field">
               <label><Briefcase size={13} /> {t('jobTitle')} <em>*</em></label>
-              <input className="empf-input" required value={position} onChange={(e) => setPosition(e.target.value)} placeholder={t('jobTitlePlaceholder')} />
+              <input className="empf-input" required value={position} onChange={(e) => { setPosition(e.target.value); clearError('position'); }} placeholder={t('jobTitlePlaceholder')} aria-invalid={Boolean(errors.position)} />
+              <FieldError message={errors.position} />
             </div>
             <div className="empf-field">
               <label><IdCard size={13} /> {t('iqamaNumber')} <em>*</em></label>
-              <input className="empf-input" required value={iqamaNumber} onChange={(e) => setIqamaNumber(e.target.value)} placeholder="2xxxxxxxxx" />
+              <input className="empf-input" required value={iqamaNumber} onChange={(e) => { setIqamaNumber(e.target.value); clearError('iqama_number'); }} placeholder="2xxxxxxxxx" aria-invalid={Boolean(errors.iqama_number)} />
+              <FieldError message={errors.iqama_number} />
             </div>
             <div className="empf-field">
               <label><Hash size={13} /> {t('employeeNumber')}</label>
-              <input className="empf-input" value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder={t('employeeNumberAuto')} />
+              <input className="empf-input" value={employeeNumber} onChange={(e) => { setEmployeeNumber(e.target.value); clearError('employee_number'); }} placeholder={t('employeeNumberAuto')} aria-invalid={Boolean(errors.employee_number)} />
+              <FieldError message={errors.employee_number} />
               <small className="empf-hint">{t('employeeNumberHint')}</small>
             </div>
           </div>
@@ -188,25 +217,28 @@ export default function EmployeeForm({
             {showCompanyPicker && (
               <div className="empf-field">
                 <label>{t('company')} <em>*</em></label>
-                <select className="empf-input" required value={companyId} onChange={(e) => { setCompanyId(e.target.value); setBranchId(''); setDepartmentId(''); }}>
+                <select className="empf-input" required value={companyId} onChange={(e) => { setCompanyId(e.target.value); setBranchId(''); setDepartmentId(''); clearError('company_id'); }} aria-invalid={Boolean(errors.company_id)}>
                   <option value="">{t('filterByCompany')}</option>
                   {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
+                <FieldError message={errors.company_id} />
               </div>
             )}
             <div className="empf-field">
               <label><MapPin size={13} /> {t('branch')} <em>*</em></label>
-              <select className="empf-input" required value={branchId} onChange={(e) => setBranchId(e.target.value)}>
+              <select className="empf-input" required value={branchId} onChange={(e) => { setBranchId(e.target.value); clearError('branch_id'); }} aria-invalid={Boolean(errors.branch_id)}>
                 <option value="">{t('filterByBranch')}</option>
                 {filteredBranches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
+              <FieldError message={errors.branch_id} />
             </div>
             <div className="empf-field">
               <label>{t('department')}</label>
-              <select className="empf-input" value={departmentId} onChange={(e) => setDepartmentId(e.target.value)}>
+              <select className="empf-input" value={departmentId} onChange={(e) => { setDepartmentId(e.target.value); clearError('department_id'); }} aria-invalid={Boolean(errors.department_id)}>
                 <option value="">{t('departmentNone')}</option>
                 {filteredDepartments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
+              <FieldError message={errors.department_id} />
             </div>
             <div className="empf-field">
               <label>{t('status')}</label>
@@ -230,29 +262,29 @@ export default function EmployeeForm({
           <div className="empf-fields">
             <div className="empf-field">
               <label><Mail size={13} /> {t('email')} <em>*</em></label>
-              <input className="empf-input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" />
+              <input className="empf-input" type="email" required value={email} onChange={(e) => { setEmail(e.target.value); clearError('email'); }} placeholder="name@company.com" aria-invalid={Boolean(errors.email)} />
+              <FieldError message={errors.email} />
             </div>
             <div className="empf-field">
               <label><Phone size={13} /> {t('phone')}</label>
               <input
-                className={`empf-input${phoneError ? ' empf-input-error' : ''}`}
+                className="empf-input"
                 type="tel"
                 inputMode="tel"
                 dir="ltr"
                 value={phone}
-                onChange={(e) => { setPhone(e.target.value); if (phoneError) validatePhone(e.target.value); }}
+                onChange={(e) => { setPhone(e.target.value); if (errors.phone) validatePhone(e.target.value); }}
                 onBlur={(e) => validatePhone(e.target.value)}
                 placeholder="05XXXXXXXX / +9665XXXXXXXX"
-                aria-invalid={phoneError ? 'true' : 'false'}
+                aria-invalid={Boolean(errors.phone)}
               />
-              {phoneError && (
-                <small className="empf-hint empf-hint-error"><AlertCircle size={12} /> {phoneError}</small>
-              )}
+              <FieldError message={errors.phone} />
             </div>
             {!isEdit && (
               <div className="empf-field empf-field-full">
                 <label><KeyRound size={13} /> {t('password')}</label>
-                <input className="empf-input" type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t('passwordAuto')} autoComplete="new-password" />
+                <input className="empf-input" type="text" value={password} onChange={(e) => { setPassword(e.target.value); clearError('password'); }} placeholder={t('passwordAuto')} autoComplete="new-password" aria-invalid={Boolean(errors.password)} />
+                <FieldError message={errors.password} />
                 <small className="empf-hint empf-hint-info"><Info size={12} /> {t('passwordHint')}</small>
               </div>
             )}
@@ -273,12 +305,15 @@ export default function EmployeeForm({
               {logoPreview ? <img src={logoPreview} alt={name} /> : <span>{getInitials(name) || <User size={22} />}</span>}
             </div>
             <label className="empf-file">
-              <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png" onChange={handleFile} />
+              <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png" onChange={handleFile} aria-invalid={Boolean(errors.logo)} />
               <ImagePlus size={16} />
               <span>{logo?.name || (logoPreview ? t('replacePhoto') : t('uploadPhoto'))}</span>
             </label>
             <small className="empf-hint">{t('uploadHint')}</small>
           </div>
+          {/* Outside the photo row: the row is a flex line, so the message would
+              otherwise sit beside the upload button instead of under it. */}
+          <FieldError message={errors.logo} />
         </section>
       </div>
     </form>

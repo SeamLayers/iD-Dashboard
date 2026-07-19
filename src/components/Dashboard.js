@@ -9,23 +9,19 @@ import {
   MapPin,
   Briefcase,
   Folder,
+  Clock,
 } from 'lucide-react';
 import {
   DashboardMetricsGrid,
   DashboardEngagementSection,
   DashboardAnalyticsGrid,
   DashboardCardStatusSection,
+  DashboardMetricsSkeleton,
 } from '@/components/features/dashboard/DashboardSections';
-import {
-  useOverview,
-  useCompanies,
-  useBranches,
-  useDepartments,
-  useEmployees,
-  useProjects,
-  useEmployeeProjects,
-} from '@/shared/api/hooks';
+import { useOverview } from '@/shared/api/hooks';
 import { useRole } from '@/shared/auth/useRole';
+import RetryButton from '@/shared/components/RetryButton';
+import { getApiErrorMessage } from '@/shared/api/axios.instance';
 
 const formatNumber = (n) => {
   if (n === null || n === undefined) return '—';
@@ -64,32 +60,31 @@ export default function Dashboard() {
   const { isSuperadmin } = useRole();
   const relTime = useRelativeTime(locale);
 
-  // Real analytics (cards + interactions). Undefined until loaded, or if the
-  // deployed backend doesn't expose the endpoint yet — everything below then
-  // degrades to entity counts + empty states, never fabricated numbers.
-  const { data: overview } = useOverview();
+  // One request feeds the whole screen: entity counts, card figures and
+  // interaction analytics. The six per_page=1 list calls this used to make
+  // reported page-1 row counts (literally "1" for any populated table), and
+  // returned 0 for a superadmin because those endpoints were owner-scoped.
+  // isPending, not isLoading: the query is disabled until AuthProvider hydrates
+  // the token from localStorage, and a disabled query reports isLoading=false —
+  // so the screen flashed all-dashes before the skeleton ever appeared.
+  const { data: overview, isPending, isError, error, refetch } = useOverview();
 
-  // Entity counts come from the tenancy-scoped list endpoints (already real).
-  const { data: companiesData } = useCompanies({ per_page: 1 }, { enabled: isSuperadmin });
-  const { data: branchesData } = useBranches({ per_page: 1 });
-  const { data: departmentsData } = useDepartments({ per_page: 1 });
-  const { data: employeesData } = useEmployees({ per_page: 1 });
-  const { data: projectsData } = useProjects({ per_page: 1 });
-  const { data: assignmentsData } = useEmployeeProjects({ per_page: 1 });
-
+  const entities = overview?.entities;
   const activeCards = overview?.cards?.active ?? overview?.cards?.published;
+  const pendingCards = overview?.cards?.pending;
   const totalScans = overview?.interactions?.scans;
 
   const metrics = [
     ...(isSuperadmin
-      ? [{ title: tSidebar('companies'), value: formatNumber(companiesData?.total), icon: <Building2 size={24} />, href: '/companies' }]
+      ? [{ title: tSidebar('companies'), value: formatNumber(entities?.companies), icon: <Building2 size={24} />, href: '/companies' }]
       : []),
-    { title: tSidebar('branches'), value: formatNumber(branchesData?.total), icon: <MapPin size={24} />, href: '/branches' },
-    { title: tSidebar('departments'), value: formatNumber(departmentsData?.total), icon: <Briefcase size={24} />, href: '/departments' },
-    { title: t('totalEmployees'), value: formatNumber(employeesData?.total), icon: <Users size={24} />, href: '/employees' },
-    { title: tSidebar('projects'), value: formatNumber(projectsData?.total), icon: <Folder size={24} />, href: '/projects' },
-    { title: tSidebar('assignments'), value: formatNumber(assignmentsData?.total), icon: <Target size={24} />, href: '/assignments' },
+    { title: tSidebar('branches'), value: formatNumber(entities?.branches), icon: <MapPin size={24} />, href: '/branches' },
+    { title: tSidebar('departments'), value: formatNumber(entities?.departments), icon: <Briefcase size={24} />, href: '/departments' },
+    { title: t('totalEmployees'), value: formatNumber(entities?.employees), icon: <Users size={24} />, href: '/employees' },
+    { title: tSidebar('projects'), value: formatNumber(entities?.projects), icon: <Folder size={24} />, href: '/projects' },
+    { title: tSidebar('assignments'), value: formatNumber(entities?.assignments), icon: <Target size={24} />, href: '/assignments' },
     { title: t('activeSmartCards'), value: formatNumber(activeCards), icon: <CreditCard size={24} />, href: '/business-cards' },
+    { title: t('pendingApprovals'), value: formatNumber(pendingCards), icon: <Clock size={24} />, href: '/approvals' },
     { title: t('totalCardScans'), value: formatNumber(totalScans), icon: <ScanLine size={24} />, href: '/business-cards' },
   ];
 
@@ -120,6 +115,35 @@ export default function Dashboard() {
     text: t('activityEvent', { name: r.name, action: t(`action_${r.type === 'view' ? 'viewed' : 'scanned'}`) }),
     time: relTime(r.at),
   }));
+
+  // Skeletons while the single overview request is in flight. Without this the
+  // screen rendered every tile as '—' and every chart as "no data", which reads
+  // as an empty account rather than a page that is still loading.
+  if (isPending && !isError) {
+    return (
+      <div className="dashboard-container">
+        <DashboardMetricsSkeleton count={metrics.length} />
+        <div className="dashboard-skeleton-chart glass-panel" />
+        <div className="dashboard-skeleton-row">
+          <div className="dashboard-skeleton-chart glass-panel" />
+          <div className="dashboard-skeleton-chart glass-panel" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="dashboard-container">
+        <div className="entity-error glass-panel">
+          {getApiErrorMessage(error)}
+          <div style={{ marginTop: 12 }}>
+            <RetryButton onClick={() => refetch()} variant="ghost" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container">

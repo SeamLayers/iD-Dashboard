@@ -177,6 +177,40 @@ export function normalizePaginated<T>(res: AxiosResponse): PaginatedResponse<T> 
   return { data: [], current_page: 1, last_page: 1, per_page: 10, total: 0, from: 0, to: 0 };
 }
 
+/**
+ * Every field error from a 422, as { field: message }.
+ *
+ * getApiErrorMessage() collapses a validation failure to the FIRST field's
+ * message, which is all a toast can show — so a form that failed on three
+ * fields marked none of them and the user had to guess. Forms use this to
+ * render each message under its own input.
+ */
+export function getApiFieldErrors(error: unknown): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!axios.isAxiosError(error)) return out;
+
+  const data = error.response?.data as LaravelErrorEnvelope | undefined;
+
+  // Shape 1: ResponseHelper::error → { errors: { field: [msg] } }
+  if (data?.errors && typeof data.errors === 'object') {
+    for (const [field, value] of Object.entries(data.errors)) {
+      const msg = fieldErrorToString(value);
+      if (msg) out[field] = msg;
+    }
+  }
+
+  // Shape 2: FormRequest validation → message is an object keyed by field.
+  if (data?.message && typeof data.message === 'object') {
+    for (const [field, value] of Object.entries(data.message as ValidationMessageMap)) {
+      if (out[field]) continue;
+      const msg = fieldErrorToString(value);
+      if (msg) out[field] = msg;
+    }
+  }
+
+  return out;
+}
+
 export function getApiErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as LaravelErrorEnvelope | undefined;

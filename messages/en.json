@@ -54,7 +54,8 @@
     "cardStatus_rejected": "Rejected",
     "action_viewed": "viewed the card",
     "action_scanned": "scanned the card",
-    "activityEvent": "{name} {action}"
+    "activityEvent": "{name} {action}",
+    "pendingApprovals": "Pending Approvals"
   },
   "Sidebar": {
     "dashboard": "Dashboard",
@@ -199,7 +200,10 @@
     "ownerAccountNote": "We create the owner’s login and email them a temporary password (valid 48h). They set their own password on first sign-in.",
     "replaceLogo": "Replace logo",
     "currentLogo": "Current logo",
-    "createSuccessTemp": "Company created. Owner temporary password: {password}"
+    "createSuccessTemp": "Company created. Owner temporary password: {password}",
+    "logoRequired": "A company logo is required.",
+    "logoTypeInvalid": "Use a JPG, PNG or WebP image.",
+    "logoTooLarge": "The logo must be smaller than 2 MB."
   },
   "Branches": {
     "title": "Branches",
@@ -752,5 +756,47 @@
     "mismatch": "The passwords do not match.",
     "tooShort": "Password must be at least 8 characters.",
     "success": "Password updated. Welcome to iD+."
+  },
+  "Confirm": {
+    "create_title": "Confirm creation",
+    "create_desc": "Are you sure you want to create this record?",
+    "create_descNamed": "Are you sure you want to create “{name}”?",
+    "create_cta": "Yes, create",
+    "update_title": "Confirm changes",
+    "update_desc": "Are you sure you want to save these changes?",
+    "update_descNamed": "Are you sure you want to save your changes to “{name}”?",
+    "update_cta": "Yes, save",
+    "destroy_title": "Confirm deletion",
+    "destroy_desc": "This cannot be undone. Are you sure you want to delete this record?",
+    "destroy_descNamed": "This cannot be undone. Are you sure you want to delete “{name}”?",
+    "destroy_cta": "Yes, delete",
+    "submit_title": "Send for approval",
+    "submit_desc": "The employee will be notified and asked to approve this card.",
+    "submit_descNamed": "Send {name}’s card for their approval?",
+    "submit_cta": "Yes, send",
+    "publish_title": "Publish this card",
+    "publish_desc": "The card becomes publicly reachable at its share link.",
+    "publish_descNamed": "Publish {name}’s card and make its link live?",
+    "publish_cta": "Yes, publish",
+    "deactivate_title": "Deactivate this card",
+    "deactivate_desc": "The public link stops working immediately.",
+    "deactivate_descNamed": "Deactivate {name}’s card? Their public link stops working immediately.",
+    "deactivate_cta": "Yes, deactivate",
+    "approve_title": "Approve this card",
+    "approve_desc": "The card moves on to be published.",
+    "approve_descNamed": "Approve {name}’s card?",
+    "approve_cta": "Yes, approve",
+    "reject_title": "Reject this card",
+    "reject_desc": "The card is sent back with your reason.",
+    "reject_descNamed": "Reject {name}’s card and send it back?",
+    "reject_cta": "Yes, reject",
+    "removeUser_title": "Remove this user",
+    "removeUser_desc": "They lose every permission this role grants.",
+    "removeUser_descNamed": "Remove {name} from this role? They lose every permission it grants.",
+    "removeUser_cta": "Yes, remove",
+    "discard_title": "Discard your changes?",
+    "discard_desc": "You have unsaved changes. Closing now loses them.",
+    "discard_descNamed": "You have unsaved changes to “{name}”. Closing now loses them.",
+    "discard_cta": "Yes, discard"
   }
 }

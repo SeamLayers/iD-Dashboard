@@ -12,6 +12,7 @@ import {
   useRejectBusinessCard,
 } from '@/shared/api/hooks';
 import { useAuth } from '@/shared/auth/AuthProvider';
+import { useConfirm } from '@/shared/confirm/ConfirmProvider';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import { ApprovalsTable, ApprovalPreviewDialog, RejectReasonDialog } from '@/components/features/approvals/ApprovalsSections';
 
@@ -54,6 +55,7 @@ export default function ApprovalsPage() {
   const t = useTranslations('Approvals');
   const tCommon = useTranslations('Common');
   const { hasPermission } = useAuth();
+  const confirm = useConfirm();
   const canApprove = hasPermission('business_card.approve');
   const canReject = hasPermission('business_card.reject');
   const canReview = canApprove || canReject;
@@ -137,6 +139,9 @@ export default function ApprovalsPage() {
   };
 
   const handleApprove = async (id) => {
+    const target = approvalRequests.find((r) => r.id === id);
+    const ok = await confirm({ action: 'approve', name: target?.name });
+    if (!ok) return;
     try {
       await approveMutation.mutateAsync(id);
       toast.success(t('approveSuccess'));
@@ -147,10 +152,14 @@ export default function ApprovalsPage() {
   };
 
   const handleConfirmRejection = async (event) => {
-    event.preventDefault();
+    // RejectReasonDialog's own form handler already preventDefaults and calls
+    // this with no argument, so `event` is optional here.
+    event?.preventDefault();
     if (!selectedRequest) return;
     const trimmedReason = rejectReason.trim();
     if (!trimmedReason) return;
+    const ok = await confirm({ action: 'reject', name: selectedRequest.name });
+    if (!ok) return;
     try {
       await rejectMutation.mutateAsync({ id: selectedRequest.id, reason: trimmedReason });
       toast.success(t('rejectSuccess'));

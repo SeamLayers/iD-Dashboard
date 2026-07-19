@@ -15,6 +15,7 @@ import {
 } from '@/shared/api/hooks';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import { useAuth } from '@/shared/auth/AuthProvider';
+import { useConfirm } from '@/shared/confirm/ConfirmProvider';
 import { useRouter } from '@/i18n/routing';
 import {
   RoleCard,
@@ -28,6 +29,7 @@ export default function RolesPage() {
   const tCommon = useTranslations('Common');
   const { hasPermission, hasRole, isReady } = useAuth();
   const router = useRouter();
+  const confirm = useConfirm();
 
   // Roles & Permissions manages the GLOBAL platform roles, so it's
   // superadmin-only. The sidebar hides it, but a direct URL would still render
@@ -73,6 +75,8 @@ export default function RolesPage() {
   }, [roles, selectedRoleId]);
 
   const handleCreate = async (payload) => {
+    const ok = await confirm({ action: 'create', name: payload?.name });
+    if (!ok) return;
     try {
       await createMutation.mutateAsync(payload);
       toast.success(t('createSuccess'));
@@ -84,6 +88,8 @@ export default function RolesPage() {
 
   const handleUpdate = async (payload) => {
     if (!selectedRoleId) return;
+    const ok = await confirm({ action: 'update', name: activeRole?.name });
+    if (!ok) return;
     try {
       await updateMutation.mutateAsync({ id: selectedRoleId, payload });
       toast.success(t('updateSuccess'));
@@ -104,13 +110,25 @@ export default function RolesPage() {
     }
   };
 
-  const handleAssignUsers = async (userIds) => {
-    if (!selectedRoleId) return;
+  /**
+   * Returns false when nothing was saved (cancelled or failed) so the caller
+   * can keep its dialog open / skip its optimistic update. Removing a user runs
+   * through this same assign mutation, hence the overridable action.
+   */
+  const handleAssignUsers = async (userIds, options = {}) => {
+    if (!selectedRoleId) return false;
+    const ok = await confirm({
+      action: options.action || 'update',
+      name: options.name || activeRole?.name,
+    });
+    if (!ok) return false;
     try {
       await assignMutation.mutateAsync({ roleId: selectedRoleId, userIds });
       toast.success(t('assignUsersSuccess'));
+      return true;
     } catch (err) {
       toast.error(getApiErrorMessage(err));
+      return false;
     }
   };
 

@@ -18,6 +18,7 @@ import {
   useBusinessCardTemplates,
 } from '@/shared/api/hooks';
 import { useRole } from '@/shared/auth/useRole';
+import { useConfirm } from '@/shared/confirm/ConfirmProvider';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 import {
@@ -28,6 +29,8 @@ import {
 } from '@/components/features/business-cards/BusinessCardsSections';
 
 const STATUSES = ['draft', 'submitted', 'approved', 'rejected', 'published'];
+
+const cardName = (card) => card?.card_data_json?.name || card?.employee?.name || undefined;
 
 export default function BusinessCardsPage() {
   const t = useTranslations('BusinessCards');
@@ -52,6 +55,7 @@ export default function BusinessCardsPage() {
   };
 
   const { isOwner } = useRole();
+  const confirm = useConfirm();
 
   const { data, isLoading, isError, error, refetch } = useBusinessCards(queryParams);
   const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });
@@ -75,6 +79,8 @@ export default function BusinessCardsPage() {
     : null;
 
   const handleIssue = async (payload) => {
+    const ok = await confirm({ action: 'create' });
+    if (!ok) return;
     try {
       await createMutation.mutateAsync(payload);
       toast.success(t('createSuccess'));
@@ -86,6 +92,8 @@ export default function BusinessCardsPage() {
 
   const handleUpdate = async (payload) => {
     if (!editTarget?.id) return;
+    const ok = await confirm({ action: 'update', name: cardName(editTarget) });
+    if (!ok) return;
     try {
       await updateMutation.mutateAsync({ id: editTarget.id, payload });
       toast.success(t('updateSuccess'));
@@ -107,6 +115,8 @@ export default function BusinessCardsPage() {
   };
 
   const handleSubmitForReview = async (card) => {
+    const ok = await confirm({ action: 'submit', name: cardName(card) });
+    if (!ok) return;
     try {
       await submitMutation.mutateAsync(card.id);
       toast.success(t('submitSuccess'));
@@ -116,6 +126,8 @@ export default function BusinessCardsPage() {
   };
 
   const handlePublish = async (card) => {
+    const ok = await confirm({ action: 'publish', name: cardName(card) });
+    if (!ok) return;
     try {
       await publishMutation.mutateAsync(card.id);
       toast.success(t('publishSuccess'));
@@ -125,6 +137,8 @@ export default function BusinessCardsPage() {
   };
 
   const handleDeactivate = async (card) => {
+    const ok = await confirm({ action: 'deactivate', name: cardName(card) });
+    if (!ok) return;
     try {
       await deactivateMutation.mutateAsync(card.id);
       toast.success(t('deactivateSuccess'));

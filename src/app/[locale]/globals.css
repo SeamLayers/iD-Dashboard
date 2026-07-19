@@ -5301,3 +5301,122 @@ select.empf-input {
 .settings-push-check { margin-inline-start: auto; }
 .settings-push-cta { flex-wrap: wrap; justify-content: space-between; }
 .settings-push-copy { display: flex; align-items: center; gap: 1rem; }
+
+/* ---------------------------------------------------------------------------
+   Dashboard loading skeletons — shown while /dashboard/overview is in flight.
+   Previously the home screen had no loading state at all: every tile rendered
+   '—' and every chart rendered its "no data" empty state, which looked like an
+   empty account instead of a pending request.
+--------------------------------------------------------------------------- */
+@keyframes idplus-skeleton-pulse {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.7; }
+}
+
+.dashboard-skeleton-line {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--color-white-rgb, 255, 255, 255), 0.06) 0%,
+    rgba(var(--color-white-rgb, 255, 255, 255), 0.13) 50%,
+    rgba(var(--color-white-rgb, 255, 255, 255), 0.06) 100%
+  );
+  border-radius: 6px;
+  animation: idplus-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.dashboard-skeleton-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 132px;
+}
+
+.dashboard-skeleton-chart {
+  min-height: 280px;
+  border-radius: 16px;
+  animation: idplus-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.dashboard-skeleton-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.dashboard-skeleton-chart + .dashboard-skeleton-chart,
+.dashboard-container > .dashboard-skeleton-chart {
+  margin-top: 0;
+}
+
+.dashboard-container > .dashboard-skeleton-chart:first-of-type {
+  margin-top: 1.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-skeleton-line,
+  .dashboard-skeleton-chart { animation: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   Confirmation dialog (shared/confirm/ConfirmProvider) — one prompt for every
+   create / save / delete / card-workflow action in the dashboard.
+--------------------------------------------------------------------------- */
+.confirm-box {
+  max-width: 420px;
+  text-align: center;
+}
+
+.confirm-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--accent-teal);
+  background: rgba(102, 252, 241, 0.12);
+  border: 1px solid rgba(102, 252, 241, 0.28);
+}
+
+.confirm-icon.is-danger {
+  color: #EF5B71;
+  background: rgba(239, 91, 113, 0.12);
+  border-color: rgba(239, 91, 113, 0.3);
+}
+
+.confirm-box .modal-desc {
+  margin-bottom: 1.5rem;
+}
+
+.confirm-box .modal-actions {
+  justify-content: center;
+}
+
+/* Inline per-field validation message (forms). A 422 used to collapse into a
+   single toast carrying only the first field's message, leaving every other
+   invalid input unmarked. */
+.modal-field-error,
+.empf-field-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #EF5B71;
+}
+
+.modal-field-error svg,
+.empf-field-error svg { flex-shrink: 0; }
+
+.modal-input[aria-invalid="true"],
+.empf-input[aria-invalid="true"],
+.empf-select[aria-invalid="true"] {
+  border-color: rgba(239, 91, 113, 0.65);
+  box-shadow: 0 0 0 3px rgba(239, 91, 113, 0.12);
+}
+
+.file-upload:has(input[aria-invalid="true"]) {
+  border-color: rgba(239, 91, 113, 0.55);
+}

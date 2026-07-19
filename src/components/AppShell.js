@@ -7,6 +7,7 @@ import TopNavbar from './TopNavbar';
 import RouteGuard from '@/shared/auth/RouteGuard';
 import ForcePasswordResetModal from './ForcePasswordResetModal';
 import PushNotificationsManager from './PushNotificationsManager';
+import { ConfirmProvider } from '@/shared/confirm/ConfirmProvider';
 
 const AUTH_PAGES = ['/login', '/forgot-password', '/reset-password'];
 
@@ -25,17 +26,20 @@ export default function AppShell({ children, locale }) {
 
   return (
     <RouteGuard>
-      <div className="layout-wrapper">
-        <Sidebar />
-        <div className="main-content">
-          <TopNavbar />
-          {children}
+      {/* Hosts the single confirmation dialog every mutating action awaits. */}
+      <ConfirmProvider>
+        <div className="layout-wrapper">
+          <Sidebar />
+          <div className="main-content">
+            <TopNavbar />
+            {children}
+          </div>
         </div>
-      </div>
-      {/* Forced first-login password reset (temp password → own password). */}
-      <ForcePasswordResetModal />
-      {/* Web-push token sync + foreground notification toasts (FCM). */}
-      <PushNotificationsManager />
+        {/* Forced first-login password reset (temp password → own password). */}
+        <ForcePasswordResetModal />
+        {/* Web-push token sync + foreground notification toasts (FCM). */}
+        <PushNotificationsManager />
+      </ConfirmProvider>
     </RouteGuard>
   );
 }

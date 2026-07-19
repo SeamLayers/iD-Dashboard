@@ -12,7 +12,8 @@ import {
   useDeleteCompany,
 } from '@/shared/api/hooks';
 import { useRole } from '@/shared/auth/useRole';
-import { getApiErrorMessage } from '@/shared/api/axios.instance';
+import { useConfirm } from '@/shared/confirm/ConfirmProvider';
+import { getApiErrorMessage, getApiFieldErrors } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 import {
   CompanyCard,
@@ -27,9 +28,12 @@ export default function CompaniesPage() {
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
+  // Per-field 422 messages handed to the form so each bad input is marked.
+  const [formFieldErrors, setFormFieldErrors] = useState({});
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const { isSuperadmin, isReady } = useRole();
+  const confirm = useConfirm();
 
   // The companies index endpoint is superadmin-only — gate the query so
   // non-superadmins never fire the request (the guard below renders instead).
@@ -50,6 +54,13 @@ export default function CompaniesPage() {
     : null;
 
   const handleSubmit = async (payload) => {
+    // Confirm outside the try: a cancel must leave the form open with no toast.
+    const ok = await confirm({
+      action: editTarget?.id ? 'update' : 'create',
+      name: payload?.name || editTarget?.name,
+    });
+    if (!ok) return;
+    setFormFieldErrors({});
     try {
       if (editTarget?.id) {
         await updateMutation.mutateAsync({ id: editTarget.id, payload });
@@ -66,6 +77,7 @@ export default function CompaniesPage() {
       setShowForm(false);
       setEditTarget(null);
     } catch (err) {
+      setFormFieldErrors(getApiFieldErrors(err));
       toast.error(getApiErrorMessage(err));
     }
   };
@@ -161,10 +173,12 @@ export default function CompaniesPage() {
         onClose={() => {
           setShowForm(false);
           setEditTarget(null);
+          setFormFieldErrors({});
         }}
         initial={editTarget}
         onSubmit={handleSubmit}
         isPending={createMutation.isPending || updateMutation.isPending}
+        fieldErrors={formFieldErrors}
       />
 
       <DeleteCompanyDialog

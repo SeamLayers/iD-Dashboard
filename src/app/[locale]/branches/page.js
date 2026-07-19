@@ -13,6 +13,7 @@ import {
   useCompaniesForCurrentUser,
 } from '@/shared/api/hooks';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
+import { useConfirm } from '@/shared/confirm/ConfirmProvider';
 import Pagination from '@/components/ui/Pagination';
 import {
   BranchCard,
@@ -23,6 +24,7 @@ import {
 export default function BranchesPage() {
   const t = useTranslations('Branches');
   const tCommon = useTranslations('Common');
+  const confirm = useConfirm();
 
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
@@ -42,6 +44,11 @@ export default function BranchesPage() {
     : null;
 
   const handleSubmit = async (payload) => {
+    const ok = await confirm({
+      action: editTarget?.id ? 'update' : 'create',
+      name: payload.name || editTarget?.name,
+    });
+    if (!ok) return;
     try {
       if (editTarget?.id) {
         await updateMutation.mutateAsync({ id: editTarget.id, payload });

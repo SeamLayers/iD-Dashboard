@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useMyCompany, useUpdateMyCompany } from '@/shared/api/hooks';
 import { useAuth } from '@/shared/auth/AuthProvider';
+import { useConfirm } from '@/shared/confirm/ConfirmProvider';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import { Link } from '@/i18n/routing';
 import RetryButton from '@/shared/components/RetryButton';
@@ -43,8 +44,12 @@ export default function MyCompanyPage() {
     enabled: isReady && isOwner,
   });
   const updateMine = useUpdateMyCompany();
+  const confirm = useConfirm();
 
   const handleUpdate = async (payload) => {
+    // Confirm outside the try: a cancel must leave the form open with no toast.
+    const ok = await confirm({ action: 'update', name: payload?.name || data?.name });
+    if (!ok) return;
     try {
       await updateMine.mutateAsync(payload);
       toast.success(tc('updateSuccess'));

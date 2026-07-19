@@ -15,6 +15,7 @@ import {
 } from '@/shared/api/hooks';
 import { useRole } from '@/shared/auth/useRole';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
+import { useConfirm } from '@/shared/confirm/ConfirmProvider';
 import Pagination from '@/components/ui/Pagination';
 import {
   ProjectsFilters,
@@ -26,6 +27,7 @@ import {
 export default function ProjectsPage() {
   const t = useTranslations('Projects');
   const tCommon = useTranslations('Common');
+  const confirm = useConfirm();
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -68,6 +70,11 @@ export default function ProjectsPage() {
     : null;
 
   const handleSubmit = async (payload) => {
+    const ok = await confirm({
+      action: editTarget?.id ? 'update' : 'create',
+      name: payload.name || editTarget?.name,
+    });
+    if (!ok) return;
     try {
       if (editTarget?.id) {
         await updateMutation.mutateAsync({ id: editTarget.id, payload });

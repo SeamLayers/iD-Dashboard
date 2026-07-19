@@ -2,8 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Building2, Mail, Phone, Pencil, Trash2, Upload, X, Plus, Check, Loader2, User, KeyRound, Hash, ImagePlus, Info } from 'lucide-react';
+import { Building2, Mail, Phone, Pencil, Trash2, Upload, X, Plus, Check, Loader2, User, KeyRound, Hash, ImagePlus, Info, AlertCircle } from 'lucide-react';
 import Dialog from '@/components/ui/Dialog';
+
+/** Inline validation message rendered under the field it belongs to. */
+function FieldError({ message }) {
+  if (!message) return null;
+  return (
+    <p className="modal-field-error" role="alert">
+      <AlertCircle size={12} /> {message}
+    </p>
+  );
+}
 
 function getInitials(name = '') {
   return name
@@ -63,10 +73,13 @@ export function CompanyCard({ t, company, onEdit, onDelete }) {
   );
 }
 
-export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPending }) {
+export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPending, fieldErrors }) {
   const tCommon = useTranslations('Common');
   const isEdit = Boolean(initial?.id);
   const fileInputRef = useRef(null);
+  // Client-side validation messages, keyed by the same field names the API
+  // uses so a 422 can drop straight into the same map.
+  const [errors, setErrors] = useState({});
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -88,11 +101,45 @@ export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPen
     setOwnerPhone('');
     setLogo(null);
     setLogoPreview(initial?.logo || null);
+    setErrors({});
   }, [isOpen, initial]);
+
+  // Server-side 422s arrive per field and are merged in, so every invalid
+  // input is marked at once instead of only the first one reaching a toast.
+  useEffect(() => {
+    if (fieldErrors && Object.keys(fieldErrors).length) {
+      setErrors((prev) => ({ ...prev, ...fieldErrors }));
+    }
+  }, [fieldErrors]);
+
+  // Drop a field's error as soon as the user edits it — otherwise a stale
+  // server message ("email already taken") stays red after it has been fixed.
+  const clearError = (field) =>
+    setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
 
   const handleFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Same limits the backend enforces, checked before the upload so the user
+    // isn't told "the logo must be an image" only after a round trip.
+    // A rejected file must also clear any previously accepted one, otherwise
+    // the error is shown while the old image is still queued and gets uploaded.
+    const reject = (message) => {
+      setErrors((prev) => ({ ...prev, logo: message }));
+      setLogo(null);
+      setLogoPreview(initial?.logo || null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+      reject(t('logoTypeInvalid'));
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      reject(t('logoTooLarge'));
+      return;
+    }
+    setErrors((prev) => ({ ...prev, logo: undefined }));
     setLogo(file);
     const reader = new FileReader();
     reader.onload = (ev) => setLogoPreview(ev.target?.result || null);
@@ -101,6 +148,15 @@ export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPen
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // The logo input is visually hidden, so a native `required` on it makes the
+    // browser refuse to submit while showing nothing at all — no message, no
+    // focus, no clue. Validate it here and render the message instead.
+    if (!isEdit && !logo) {
+      setErrors((prev) => ({ ...prev, logo: t('logoRequired') }));
+      return;
+    }
+
     const payload = {
       name,
       email,
@@ -137,19 +193,23 @@ export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPen
           <div className="modal-grid">
             <div className="modal-field">
               <label>{t('name')} <em>*</em></label>
-              <input className="modal-input" required value={name} onChange={(e) => setName(e.target.value)} />
+              <input className="modal-input" required value={name} onChange={(e) => { setName(e.target.value); clearError('name'); }} aria-invalid={Boolean(errors.name)} />
+              <FieldError message={errors.name} />
             </div>
             <div className="modal-field">
               <label><Mail size={12} /> {t('email')} <em>*</em></label>
-              <input className="modal-input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input className="modal-input" type="email" required value={email} onChange={(e) => { setEmail(e.target.value); clearError('email'); }} aria-invalid={Boolean(errors.email)} />
+              <FieldError message={errors.email} />
             </div>
             <div className="modal-field">
               <label><Phone size={12} /> {t('phone')} <em>*</em></label>
-              <input className="modal-input" required value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" />
+              <input className="modal-input" required value={phone} onChange={(e) => { setPhone(e.target.value); clearError('phone'); }} dir="ltr" aria-invalid={Boolean(errors.phone)} />
+              <FieldError message={errors.phone} />
             </div>
             <div className="modal-field">
               <label><Hash size={12} /> {t('commercialRegister')}</label>
-              <input className="modal-input" value={commercialRegister} onChange={(e) => setCommercialRegister(e.target.value)} />
+              <input className="modal-input" value={commercialRegister} onChange={(e) => { setCommercialRegister(e.target.value); clearError('commercial_register'); }} aria-invalid={Boolean(errors.commercial_register)} />
+              <FieldError message={errors.commercial_register} />
             </div>
           </div>
         </section>
@@ -167,15 +227,18 @@ export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPen
             <div className="modal-grid">
               <div className="modal-field">
                 <label><User size={12} /> {t('ownerName')} <em>*</em></label>
-                <input className="modal-input" required value={ownerName} onChange={(e) => setOwnerName(e.target.value)} placeholder={t('ownerNamePlaceholder')} />
+                <input className="modal-input" required value={ownerName} onChange={(e) => { setOwnerName(e.target.value); clearError('owner_name'); }} placeholder={t('ownerNamePlaceholder')} aria-invalid={Boolean(errors.owner_name)} />
+                <FieldError message={errors.owner_name} />
               </div>
               <div className="modal-field">
                 <label><Mail size={12} /> {t('ownerEmail')} <em>*</em></label>
-                <input className="modal-input" type="email" required value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} placeholder="owner@company.com" />
+                <input className="modal-input" type="email" required value={ownerEmail} onChange={(e) => { setOwnerEmail(e.target.value); clearError('owner_email'); }} placeholder="owner@company.com" aria-invalid={Boolean(errors.owner_email)} />
+                <FieldError message={errors.owner_email} />
               </div>
               <div className="modal-field modal-field-full">
                 <label><Phone size={12} /> {t('ownerPhone')}</label>
-                <input className="modal-input" value={ownerPhone} onChange={(e) => setOwnerPhone(e.target.value)} placeholder="05xxxxxxxx" dir="ltr" />
+                <input className="modal-input" value={ownerPhone} onChange={(e) => { setOwnerPhone(e.target.value); clearError('owner_phone'); }} placeholder="05xxxxxxxx" dir="ltr" aria-invalid={Boolean(errors.owner_phone)} />
+                <FieldError message={errors.owner_phone} />
               </div>
             </div>
             <p className="modal-hint-info"><Info size={13} /> {t('ownerAccountNote')}</p>
@@ -197,13 +260,14 @@ export function CompanyFormDialog({ t, isOpen, onClose, initial, onSubmit, isPen
               type="file"
               accept="image/jpeg,image/jpg,image/png,image/webp"
               onChange={handleFile}
-              required={!isEdit}
+              aria-invalid={Boolean(errors.logo)}
             />
             <div className="file-upload-icon"><Upload size={20} /></div>
             <div className="file-upload-text">
               <span>{logo?.name || (logoPreview ? t('replaceLogo') : t('uploadLogo'))}</span>
             </div>
           </label>
+          {errors.logo && <p className="modal-field-error"><AlertCircle size={12} /> {errors.logo}</p>}
           {logoPreview && (
             <div className="file-preview">
               <img src={logoPreview} alt="Preview" />

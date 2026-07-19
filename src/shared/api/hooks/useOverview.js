@@ -4,11 +4,14 @@ import { queryKeys } from './queryKeys';
 import { useAuth } from '@/shared/auth/AuthProvider';
 
 /**
- * Real dashboard analytics (cards + interactions), tenancy-scoped server-side.
+ * Everything the home screen shows: entity counts, card figures and interaction
+ * analytics, all tenancy-scoped server-side.
  *
- * `retry: false` so that if the backend build serving this dashboard doesn't
- * expose /dashboard/overview yet, the home screen falls back to entity counts
- * and honest empty states instead of hanging — it never shows fake numbers.
+ * This is now the screen's ONLY data source — the six per_page=1 list calls it
+ * used to fall back on reported page-1 row counts rather than real totals, and
+ * returned nothing at all for a superadmin. Consequence: the dashboard build
+ * must not be deployed ahead of a backend that returns `entities`, otherwise
+ * `retry: false` sends the home screen straight to its error panel.
  */
 export const useOverview = () => {
   const { isAuthenticated } = useAuth();

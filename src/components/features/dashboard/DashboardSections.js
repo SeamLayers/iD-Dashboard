@@ -20,6 +20,22 @@ function ChartEmpty({ label }) {
   );
 }
 
+// Placeholder tiles matching the real grid's shape, so the layout doesn't jump
+// when the numbers arrive.
+export function DashboardMetricsSkeleton({ count = 8 }) {
+  return (
+    <div className="metrics-grid" aria-hidden="true">
+      {Array.from({ length: count }).map((_, idx) => (
+        <div key={idx} className="metric-card glass-panel is-static dashboard-skeleton-card">
+          <div className="dashboard-skeleton-line" style={{ width: 34, height: 34, borderRadius: 10 }} />
+          <div className="dashboard-skeleton-line" style={{ width: '60%', height: 12, marginTop: 18 }} />
+          <div className="dashboard-skeleton-line" style={{ width: '38%', height: 26, marginTop: 10 }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function DashboardMetricsGrid({ metrics }) {
   return (
     <div className="metrics-grid">

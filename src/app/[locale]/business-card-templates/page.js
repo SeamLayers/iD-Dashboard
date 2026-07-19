@@ -13,6 +13,7 @@ import {
   useCompaniesForCurrentUser,
 } from '@/shared/api/hooks';
 import { useRole } from '@/shared/auth/useRole';
+import { useConfirm } from '@/shared/confirm/ConfirmProvider';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
 import Pagination from '@/components/ui/Pagination';
 import {
@@ -41,6 +42,7 @@ export default function BusinessCardTemplatesPage() {
   };
 
   const { isOwner } = useRole();
+  const confirm = useConfirm();
 
   const { data, isLoading, isError, error, refetch } = useBusinessCardTemplates(queryParams);
   const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });
@@ -56,6 +58,12 @@ export default function BusinessCardTemplatesPage() {
     : null;
 
   const handleSubmit = async (payload) => {
+    // Confirm outside the try: a cancel must leave the dialog open with no toast.
+    const ok = await confirm({
+      action: editTarget?.id ? 'update' : 'create',
+      name: payload?.name || editTarget?.name,
+    });
+    if (!ok) return;
     try {
       if (editTarget?.id) {
         await updateMutation.mutateAsync({ id: editTarget.id, payload });

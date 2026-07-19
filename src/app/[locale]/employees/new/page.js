@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { toast } from 'react-hot-toast';
@@ -14,8 +14,9 @@ import {
   useDepartments,
 } from '@/shared/api/hooks';
 import { useRole } from '@/shared/auth/useRole';
+import { useConfirm } from '@/shared/confirm/ConfirmProvider';
 import { useRouter } from '@/i18n/routing';
-import { getApiErrorMessage } from '@/shared/api/axios.instance';
+import { getApiErrorMessage, getApiFieldErrors } from '@/shared/api/axios.instance';
 
 function EmployeeFormScreen() {
   const t = useTranslations('Employees');
@@ -25,6 +26,9 @@ function EmployeeFormScreen() {
   const editId = searchParams.get('id');
   const isEdit = Boolean(editId);
   const { isSuperadmin } = useRole();
+  const confirm = useConfirm();
+  // Per-field 422 messages handed to the form so each bad input is marked.
+  const [formFieldErrors, setFormFieldErrors] = useState({});
 
   const { data: employee, isLoading: loadingEmployee } = useEmployee(editId);
   const { data: companiesData } = useCompaniesForCurrentUser({ per_page: 100 });
@@ -41,6 +45,17 @@ function EmployeeFormScreen() {
   const goBack = () => router.push('/employees');
 
   const handleSubmit = async (payload) => {
+    // The payload is a plain object today but becomes FormData when a logo is
+    // attached, so read the name through both shapes and never touch it.
+    const name = payload instanceof FormData ? payload.get('name') : payload?.name;
+    // Confirm outside the try: this is a full page, so a cancel must leave the
+    // still-filled form exactly where it is — no navigation, no error toast.
+    const ok = await confirm({
+      action: isEdit ? 'update' : 'create',
+      name: name || employee?.name || undefined,
+    });
+    if (!ok) return;
+    setFormFieldErrors({});
     try {
       if (isEdit) {
         await updateMutation.mutateAsync({ id: editId, payload });
@@ -58,6 +73,7 @@ function EmployeeFormScreen() {
       }
       goBack();
     } catch (err) {
+      setFormFieldErrors(getApiFieldErrors(err));
       toast.error(getApiErrorMessage(err));
     }
   };
@@ -77,6 +93,7 @@ function EmployeeFormScreen() {
       onSubmit={handleSubmit}
       onCancel={goBack}
       isPending={createMutation.isPending || updateMutation.isPending}
+      fieldErrors={formFieldErrors}
     />
   );
 }

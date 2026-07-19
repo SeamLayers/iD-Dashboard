@@ -16,6 +16,7 @@ import {
 import { useRole } from '@/shared/auth/useRole';
 import PermissionGate from '@/shared/auth/PermissionGate';
 import { getApiErrorMessage } from '@/shared/api/axios.instance';
+import { useConfirm } from '@/shared/confirm/ConfirmProvider';
 import Pagination from '@/components/ui/Pagination';
 import {
   DepartmentsFilters,
@@ -27,6 +28,7 @@ import {
 export default function DepartmentsPage() {
   const t = useTranslations('Departments');
   const tCommon = useTranslations('Common');
+  const confirm = useConfirm();
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -68,6 +70,11 @@ export default function DepartmentsPage() {
     : null;
 
   const handleSubmit = async (payload) => {
+    const ok = await confirm({
+      action: editTarget?.id ? 'update' : 'create',
+      name: payload.name || editTarget?.name,
+    });
+    if (!ok) return;
     try {
       if (editTarget?.id) {
         await updateMutation.mutateAsync({ id: editTarget.id, payload });

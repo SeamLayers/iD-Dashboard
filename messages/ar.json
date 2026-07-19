@@ -54,7 +54,8 @@
     "cardStatus_rejected": "مرفوضة",
     "action_viewed": "شاهد البطاقة",
     "action_scanned": "مسح البطاقة",
-    "activityEvent": "{name} {action}"
+    "activityEvent": "{name} {action}",
+    "pendingApprovals": "بانتظار الموافقة"
   },
   "Sidebar": {
     "dashboard": "لوحة القيادة",
@@ -199,7 +200,10 @@
     "ownerAccountNote": "نُنشئ حساب المالك ونرسل له كلمة مرور مؤقتة (صالحة ٤٨ ساعة) عبر البريد. يقوم بتعيين كلمة مروره عند أول دخول.",
     "replaceLogo": "استبدال الشعار",
     "currentLogo": "الشعار الحالي",
-    "createSuccessTemp": "تم إنشاء الشركة. كلمة مرور المالك المؤقتة: {password}"
+    "createSuccessTemp": "تم إنشاء الشركة. كلمة مرور المالك المؤقتة: {password}",
+    "logoRequired": "شعار الشركة مطلوب.",
+    "logoTypeInvalid": "استخدم صورة بصيغة JPG أو PNG أو WebP.",
+    "logoTooLarge": "يجب أن يكون حجم الشعار أقل من 2 ميجابايت."
   },
   "Branches": {
     "title": "الفروع",
@@ -752,5 +756,47 @@
     "mismatch": "كلمتا المرور غير متطابقتين.",
     "tooShort": "يجب أن تتكون كلمة المرور من ٨ أحرف على الأقل.",
     "success": "تم تحديث كلمة المرور. مرحباً بك في iD+."
+  },
+  "Confirm": {
+    "create_title": "تأكيد الإضافة",
+    "create_desc": "هل أنت متأكد من إنشاء هذا السجل؟",
+    "create_descNamed": "هل أنت متأكد من إنشاء “{name}”؟",
+    "create_cta": "نعم، إنشاء",
+    "update_title": "تأكيد التعديلات",
+    "update_desc": "هل أنت متأكد من حفظ هذه التعديلات؟",
+    "update_descNamed": "هل أنت متأكد من حفظ تعديلاتك على “{name}”؟",
+    "update_cta": "نعم، حفظ",
+    "destroy_title": "تأكيد الحذف",
+    "destroy_desc": "لا يمكن التراجع عن هذا الإجراء. هل أنت متأكد من حذف هذا السجل؟",
+    "destroy_descNamed": "لا يمكن التراجع عن هذا الإجراء. هل أنت متأكد من حذف “{name}”؟",
+    "destroy_cta": "نعم، حذف",
+    "submit_title": "إرسال للموافقة",
+    "submit_desc": "سيتم إشعار الموظف ومطالبته بالموافقة على البطاقة.",
+    "submit_descNamed": "إرسال بطاقة {name} للموافقة عليها؟",
+    "submit_cta": "نعم، إرسال",
+    "publish_title": "نشر البطاقة",
+    "publish_desc": "ستصبح البطاقة متاحة للجميع عبر رابط المشاركة.",
+    "publish_descNamed": "نشر بطاقة {name} وتفعيل رابطها؟",
+    "publish_cta": "نعم، نشر",
+    "deactivate_title": "إيقاف البطاقة",
+    "deactivate_desc": "سيتوقف الرابط العام عن العمل فورًا.",
+    "deactivate_descNamed": "إيقاف بطاقة {name}؟ سيتوقف رابطها العام فورًا.",
+    "deactivate_cta": "نعم، إيقاف",
+    "approve_title": "الموافقة على البطاقة",
+    "approve_desc": "ستنتقل البطاقة إلى مرحلة النشر.",
+    "approve_descNamed": "الموافقة على بطاقة {name}؟",
+    "approve_cta": "نعم، موافقة",
+    "reject_title": "رفض البطاقة",
+    "reject_desc": "ستتم إعادة البطاقة مع ذكر السبب.",
+    "reject_descNamed": "رفض بطاقة {name} وإعادتها؟",
+    "reject_cta": "نعم، رفض",
+    "removeUser_title": "إزالة المستخدم",
+    "removeUser_desc": "سيفقد جميع الصلاحيات التي يمنحها هذا الدور.",
+    "removeUser_descNamed": "إزالة {name} من هذا الدور؟ سيفقد جميع صلاحياته.",
+    "removeUser_cta": "نعم، إزالة",
+    "discard_title": "تجاهل التعديلات؟",
+    "discard_desc": "لديك تعديلات غير محفوظة، وسيتم فقدانها عند الإغلاق.",
+    "discard_descNamed": "لديك تعديلات غير محفوظة على “{name}”، وسيتم فقدانها عند الإغلاق.",
+    "discard_cta": "نعم، تجاهل"
   }
 }
